@@ -18,13 +18,15 @@ nnode = 4
 
 coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])
 
+
+
 # No. elements and connectivity
 
 nelem = 1
 maxnodes = 4
 nelnodes = 4
 elident = np.array([1])
-connect = np.array([[1],[2],[3],[4]])
+connect = np.array([[0],[1],[2],[3]])
 
 # No. nodes with prescribed displacements, with the prescribed displacements
 
@@ -434,7 +436,7 @@ def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
 
 #######################
 
-def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement,xi,F, dNdxs):
+def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
     
     npoints = numberofintegrationpoints(ncoord,nelnodes,elident)
     dNdx = np.zeros((nelnodes,ncoord))
@@ -617,13 +619,13 @@ def globalstiffness(ncoord,ndof,nnode,coords,nelem,
     # %
     # %   Loop over all the elements
     # %
-    for lmn in range(0,nelem):
+    for lmn in range(0,nelem): 
     # %
     # %   Extract coords of nodes, DOF for the current element
     # %
         for a in range(0,nelnodes):
             for i in range(0,ncoord):
-                lmncoord[i,a] = coords[i,connect[a,lmn]]
+                lmncoord[i,a] = coords[i,connect[a,lmn]]  # -1 added coords is having dimensions 2x4, thus j should be 0,1,2,3. connect[3,0]=4. coord[i,4]==>coord[i,4-1]  OR Changed connect to start from 0 instead of 1
             for i in range(0,ndof):
                 lmndof[i,a] = dofs[ndof*(connect[a,lmn]-1)+i]
 
