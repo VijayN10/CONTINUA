@@ -451,12 +451,16 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
     # Loop over the integration points
 
+    
+
     for intpt in range(0,npoints):
 
         # Compute shape functions && derivatives wrt local coords
+
+        xi = np.zeros((ncoord,1))  #added  ncoord - 1 ---> ncoords (1,1) ---> (2,1)
         
         for i in range(0,ncoord):
-            xi[i] = xilist[i,intpt]
+          xi[i] = xilist[i,intpt]
         
         N = shapefunctions(nelnodes,ncoord,elident,xi)
         dNdxi = shapefunctionderivs(nelnodes,ncoord,elident,xi)
