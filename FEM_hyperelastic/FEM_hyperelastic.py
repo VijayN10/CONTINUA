@@ -431,7 +431,6 @@ def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
 
   return rel
 
-
 #######################
 
 def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement,xi,F, dNdxs):
@@ -643,7 +642,6 @@ def globalstiffness(ncoord,ndof,nnode,coords,nelem,
     
     return Stif
 
-
 ################
 
 def globaltraction(ncoord,ndof,nnodes,ndloads,coords,
@@ -686,7 +684,6 @@ def globaltraction(ncoord,ndof,nnodes,ndloads,coords,
               r[rw] = r[rw] + rel[(a)*ndof+i]
   return F
       
-
 ###############
 
 def globalresidual(ncoord,ndof,nnode,coords,nelem,maxnodes,elident,nelnodes,connect,materialprops,dofs):
@@ -718,12 +715,63 @@ def globalresidual(ncoord,ndof,nnode,coords,nelem,maxnodes,elident,nelnodes,conn
 
 ########################
 
-
 w = np.zeros((nnode*ndof,1))
 
+nsteps = 1
+tol = 0.0001
+maxit = 1
+relax = 1.0
 
-K = globalstiffness(ncoord,ndof,nnode,coords,
-        nelem,maxnodes,elident,nelnodes,connect,materialprops,w)
+forcevdisp = np.zeros((1,nsteps))  # Changed?
+forcevdisp[0,0] = 0.0
+forcevdisp[1,0] = 0.0
 
-F = globaltraction(ncoord,ndof,nnode,ndload,coords,
+
+for step in range(0,nsteps):
+
+  loadfactor = step/nsteps
+
+  err1 = 1.0
+  nit = 0
+  
+  print(1, f'\n Step {step} Load {loadfactor}\n')
+
+  while ((err1>tol) and (nit<maxit)):         # Newton Raphson loop
+    nit = nit + 1
+
+    K = globalstiffness(ncoord,ndof,nnode,coords,
+            nelem,maxnodes,elident,nelnodes,connect,materialprops,w)
+    F = globaltraction(ncoord,ndof,nnode,ndload,coords,
                 nelnodes,elident,connect,dloads,w)
+    R = globalresidual(ncoord,ndof,nnode,coords,
+              nelem,maxnodes,elident,nelnodes,
+                    connect,materialprops,w)
+    
+    b = loadfactor*F - R
+    
+
+    for n in range(0,nfix):
+      rw = int(ndof*( fixnodes[0,n] )  + fixnodes[1,n])
+      for cl in range(0,ndof*nnode):
+        K[rw,cl] =0
+          
+      K[rw,rw]= 1.0
+      r[rw] = fixnodes[2,n]
+
+
+    dw = np.linalg.solve(K,b)
+
+    w = w + relax*dw
+    wnorm = np.sum(w.conj()*w, axis=0)
+    err1 = np.sum(dw.conj()*dw, axis=0)
+    err2 = np.sum(b.conj()*b, axis=0)
+
+    err1 = np.sqrt(err1/wnorm)
+    err2 = np.sqrt(err2)/(ndof*nnode)
+    print(1,f'Iteration number {nit} Correction {err1} Residual {err} tolerance {tol}\n');
+
+
+forcevdisp[1,step] = loadfactor*dloads[2,0]
+forcevdisp[0,step] = w[2]
+
+
