@@ -365,6 +365,75 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
 
 ####################
 
+def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
+
+  npoints = numberofintegrationpoints((ncoord,nelnodes,elident))
+  dxdxi = np.zeros((ncoord,ncoord))
+  dxidx = np.zeros((ncoord,ncoord))
+  dNdxs = np.zeros((nelnodes,ncoord))
+  rel = np.zeros((ndof*nelnodes,1))
+
+  xilist = integrationpoints(ncoord,nelnodes,npoints,elident)
+  w = integrationweights(ncoord,nelnodes,npoints,elident)
+
+  for intpt in range(0,npoints):
+
+    for i in range(0,ncoord):
+      xi[i] = xilist[i,intpt]
+   
+    N = shapefunctions(nelnodes,ncoord,elident,xi)
+    dNdxi = shapefunctionderivs(nelnodes,ncoord,elident,xi)
+
+    for i in range(0,ncoord):
+      for j in range(0,ncoord):
+        dxdxi[i,j] = 0.0
+        for a in range(0,nelnodes):
+          dxdxi[i,j] = dxdxi[i,j] + coord[i,a]*dNdxi[a,j]
+
+
+    dxidx = np.linalg.inv(dxdxi)
+    dt = np.linalg.det(dxdxi)
+
+    for a in range(0,nelnodes):
+      for i in range(0,ncoord):
+        dNdx[a,i] = 0.0
+        for j in range(0,ncoord):
+          dNdx[a,i] = dNdx[a,i] + dNdxi[a,j]*dxidx[j,i]
+
+
+    for i in range(0,ncoord):
+      for j in range(0,ncoord):
+          F[i,j] = 0.0
+          if (i==j):
+            F[i,i] = 1.0
+          for a in range(0,nelnodes):
+            F[i,i] = F[i,j] + (displacement[i,a]*dNdx[a,j])
+
+    J = np.linalg.det(F)
+    B = F*(F.transpose())
+
+
+    Finv = np.linalg.inv(F)
+    for a in range(0,nelnodes):
+      for i in range(0,ncoord):
+        dNdxs[a.i] = 0.0
+        for j in range(0,ncoord):
+          dNdxs[a,i] = dNdxs[a,i] + dNdx[a,j]*Finv[j,i]  
+
+
+    stress = Kirchhoffstress(ndof,ncoord,B,J,materialprops)
+            
+    for a in range(0,nelnodes):
+      for i in range(0,ndof):
+        row = ndof*(a-1)+i
+        for j in range(0,ncoord):
+          rel[row] = rel[row] + stress[i,j]*dNdxs[a,j]*w[intpt]*dt
+
+  return rel
+
+
+#######################
+
 def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement,xi,F, dNdxs):
     
     npoints = numberofintegrationpoints(ncoord,nelnodes,elident)
@@ -619,6 +688,36 @@ def globaltraction(ncoord,ndof,nnodes,ndloads,coords,
       
 
 ###############
+
+def globalresidual(ncoord,ndof,nnode,coords,nelem,maxnodes,elident,nelnodes,connect,materialprops,dofs):
+   
+  resid = np.zeros((ndof*nnode,1))
+  lmncoord = np.zeros((ncoord,maxnodes))
+  lmndof = np.zeros((ndof,maxnodes))
+  rel = np.zeros((ndof*maxnodes,ndof*maxnodes))
+
+  for lmn in range(0,nelem):
+
+    for a in range(0,nelnodes[lmn]):
+        
+        for i in range(0,ncoord):
+          lmncoord[i,a] = coords[i,connect[a,lmn]]
+        for i in range (0,ndof):
+          lmncoord[i,a] = dofs[ndof*(connect[a,lmn]-1)+i]
+
+    n = nelnodes[lmn]
+    ident = elident[lmn]
+    rel = elresid(ncoord,ndof,n,ident,lmncoord,materialprops,lmndof)
+   
+    for a in range(0,nelnodes[lmn]):
+      for i in range(0,ndof):
+          rw = ndof*(connect[a,lmn]-1)+i
+          resid[rw] = resid[rw] + rel[ndof*(a-1)+i]
+
+  return resid
+
+########################
+
 
 w = np.zeros((nnode*ndof,1))
 
