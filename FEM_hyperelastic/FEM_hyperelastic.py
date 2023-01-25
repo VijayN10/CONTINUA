@@ -278,7 +278,7 @@ def shapefunctions(nelnodes,ncoord,elident,xi):
       N[0] = 0.25*(1-xi[0])*(1-xi[0])
       N[1] = 0.25*(1+xi[0])*(1-xi[0])
       N[2] = 0.25*(1+xi[0])*(1+xi[0])
-      N[4] = 0.25*(1-xi[0])*(1+xi[0])
+      N[3] = 0.25*(1-xi[0])*(1+xi[0])
     elif (nelnodes == 8):
       N[0] = -0.25*(1-xi[0])*(1-xi[0])*(1+xi[0]+xi[0])
       N[1] = 0.25*(1+xi[0])*(1-xi[0])*(xi[0]-xi[0]-1)
@@ -295,7 +295,7 @@ def shapefunctions(nelnodes,ncoord,elident,xi):
 
 def shapefunctionderivs(nelnodes,ncoord,elident,xi):
     
-  dNdxi = np.zeros(nelnodes,ncoord)
+  dNdxi = np.zeros((nelnodes,ncoord))
 
 # 
 #  1D elements
