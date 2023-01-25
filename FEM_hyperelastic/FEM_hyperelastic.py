@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # INPUT
 
@@ -722,7 +723,7 @@ tol = 0.0001
 maxit = 1
 relax = 1.0
 
-forcevdisp = np.zeros((1,nsteps))  # Changed?
+forcevdisp = np.zeros((2,nsteps+1)) 
 forcevdisp[0,0] = 0.0
 forcevdisp[1,0] = 0.0
 
@@ -768,10 +769,26 @@ for step in range(0,nsteps):
 
     err1 = np.sqrt(err1/wnorm)
     err2 = np.sqrt(err2)/(ndof*nnode)
-    print(1,f'Iteration number {nit} Correction {err1} Residual {err} tolerance {tol}\n');
+    print(1,f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}\n');
 
 
 forcevdisp[1,step] = loadfactor*dloads[2,0]
 forcevdisp[0,step] = w[2]
+
+
+##########################
+
+plt.plot(forcevdisp[0,:],forcevdisp[1,:],'r','LineWidth',3)
+plt.xlabel({'Displacement'},'FontSize',16)
+plt.ylabel({'Force'},'FontSize',16)
+
+#########################
+
+defcoords = np.zeros((ndof,nnode))
+scalefactor = 1.0
+for i in range(0,nnode):
+  for j in range(0,ndof):
+      defcoords[j,i] = coords[j,i] + scalefactor*w[ndof*(i-1)+j-1]  # Check?
+
 
 
