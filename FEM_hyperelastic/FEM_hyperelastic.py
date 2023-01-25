@@ -339,7 +339,7 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
 #                   
     elif ( nelnodes == 4 ):
       dNdxi[0,0] = -0.25*(1-xi[1])
-      dNdxi[1,2] = -0.25*(1-xi[0])
+      dNdxi[0,1] = -0.25*(1-xi[0])
       dNdxi[1,0] = 0.25*(1-xi[1])
       dNdxi[1,1] = -0.25*(1+xi[0])
       dNdxi[2,0] = 0.25*(1+xi[1])
