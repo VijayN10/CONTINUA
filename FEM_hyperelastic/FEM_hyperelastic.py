@@ -18,8 +18,6 @@ nnode = 4
 
 coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])
 
-
-
 # No. elements and connectivity
 
 nelem = 1
@@ -368,7 +366,7 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
 
 ####################
 
-def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
+def elresid(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
   npoints = numberofintegrationpoints(ncoord,nelnodes,elident)
   dxdxi = np.zeros((ncoord,ncoord))
@@ -379,7 +377,9 @@ def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
   xilist = integrationpoints(ncoord,nelnodes,npoints,elident)
   w = integrationweights(ncoord,nelnodes,npoints,elident)
   xi = np.zeros((ncoord,npoints))  # Added TBC
-
+  dNdx = np.zeros((nelnodes,ncoord)) # Added TBC
+  coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])  # Added here, if not added then it takes default as zero matrix creating problem with calculating dxdxi (giving singular matrix)
+ 
   for intpt in range(0,npoints):
 
     for i in range(0,ncoord):
@@ -392,9 +392,8 @@ def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
       for j in range(0,ncoord):
         dxdxi[i,j] = 0.0
         for a in range(0,nelnodes):
-          dxdxi[i,j] = dxdxi[i,j] + coord[i,a]*dNdxi[a,j]
+          dxdxi[i,j] = dxdxi[i,j] + coords[i,a]*dNdxi[a,j]
 
-    print(dxdxi)
     dxidx = np.linalg.inv(dxdxi)
     dt = np.linalg.det(dxdxi)
 
@@ -634,7 +633,7 @@ def globalstiffness(ncoord,ndof,nnode,coords,nelem,
     # %
         for a in range(0,nelnodes):
             for i in range(0,ncoord):
-                lmncoord[i,a] = coords[i,connect[a,lmn]]  # Coords is having dimensions 2x4, thus j should be 0,1,2,3. But, connect[3,0]=4. coord[i,4] gives en error; Solution --> coord[i,4-1]  OR Changed connect to start from 0 instead of 1
+                lmncoord[i,a] = coords[i,connect[a,lmn]]  # Coords is having dimensions 2x4, thus j should be 0,1,2,3. But, connect[3,0]=4. coords[i,4] gives en error; Solution --> coords[i,4-1]  OR Changed connect to start from 0 instead of 1
             for i in range(0,ndof):
                 lmndof[i,a] = dofs[ndof*(connect[a,lmn]-1)+i]
 
