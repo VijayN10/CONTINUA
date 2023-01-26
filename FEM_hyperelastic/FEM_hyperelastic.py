@@ -379,7 +379,10 @@ def elresid(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
   xi = np.zeros((ncoord,npoints))  # Added TBC
   dNdx = np.zeros((nelnodes,ncoord)) # Added TBC
   coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])  # Added here, if not added then it takes default as zero matrix creating problem with calculating dxdxi (giving singular matrix)
- 
+  
+  F = np.zeros((ncoord,ncoord))  #Added TBC
+
+
   for intpt in range(0,npoints):
 
     for i in range(0,ncoord):
@@ -487,7 +490,9 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
         # Compute the deformation gradients by differentiating displacements
 
-        F = np.zeros((ncoord,ncoord))   # Is it correct?
+        # F = np.zeros((ncoord,ncoord))  # TBC Calculated in elresid function?
+        print(F)
+        print(F.shape)
 
         for i in range(0,ncoord):
             for j in range(0,ncoord):
@@ -497,6 +502,9 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
                     for a in range(0,nelnodes):
                         F[i,j] = F[i,j] + (displacement[i,a]*dNdx[a,j])
 
+        print(F)
+        print(F.shape)
+        
         # Compute Bbar and J
 
         J = np.linalg.det(F)
@@ -754,7 +762,7 @@ for step in range(0,nsteps):
             nelem,maxnodes,elident,nelnodes,connect,materialprops,w)
     F = globaltraction(ncoord,ndof,nnode,ndload,coords,
                 nelnodes,elident,connect,dloads,w)
-    R = globalresidual(ncoord,ndof,nnode,coords,
+    r = globalresidual(ncoord,ndof,nnode,coords,
               nelem,maxnodes,elident,nelnodes,
                     connect,materialprops,w)
     
