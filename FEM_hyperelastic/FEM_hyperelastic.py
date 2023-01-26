@@ -58,7 +58,7 @@ def materialstiffness(ndof,ncoord,B,J,materialprops):
                     for l in range(0,2):
                         C[i,j,k,l] =  mu1*( dl[i,k]*B[j,l]+B[i,l]*dl[j,k]\
                                     - (2/3)*(B[i,j]*dl[k,l]+dl[i,j]*B[k,l])\
-                                    + (2/3)*Bqq*dl[i,j]*dl[k,l]/3 )/J^(2/3)\
+                                    + (2/3)*Bqq*dl[i,j]*dl[k,l]/3 )/J**(2/3)\
                                     + K1*(2*J-1)*J*dl[i,j]*dl[k,l]
                             
     return C 
@@ -78,7 +78,7 @@ def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
         Bkk = Bkk + 1
     for i in range(0,ndof):
         for j in range(0,ncoord):
-            stress[i,j] = mu1*(B[i,j] - Bkk*dl[i,j]/3)/J^(2/3) + K1*J*(J-1)*dl[i,j]
+            stress[i,j] = mu1*(B[i,j] - Bkk*dl[i,j]/3)/J**(2/3) + K1*J*(J-1)*dl[i,j]
 
     return stress
 
@@ -487,6 +487,8 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
         # Compute the deformation gradients by differentiating displacements
 
+        F = np.zeros((ncoord,ncoord))   # Is it correct?
+
         for i in range(0,ncoord):
             for j in range(0,ncoord):
                 F[i,j] = 0.0
@@ -502,6 +504,8 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
 
         # Convert shape function derivatives to derivatives wrt spatial coords
+
+        dNdxs = np.zeros((nelnodes,ncoord))   # Is it correct?
 
         Finv = np.linalg.inv(F)
         for a in range(0,nelnodes):
