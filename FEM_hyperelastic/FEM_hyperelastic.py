@@ -25,8 +25,8 @@ coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])
 nelem = 1
 maxnodes = 4
 nelnodes = 4
-elident = np.array([0])
-connect = np.array([[0],[1],[2],[3]])
+elident = np.array([[0]])                 # elident = np.array([[1]])
+connect = np.array([[0],[1],[2],[3]])     # connect = np.array([[1],[2],[3],[4]])
 
 # No. nodes with prescribed displacements, with the prescribed displacements
 
@@ -36,8 +36,8 @@ fixnodes = np.array([[1, 1, 2, 4],[1, 2, 2, 1],[0, 0, 0, 0]])
 # No. loaded element faces, with the loads
 
 ndload = 1
-dloads = np.array([[1],[2],[3],[0]])
-
+dloads = np.array([[0],[1],[2],[0]])      # dloads = np.array([[1],[2],[3],[0]])
+ 
 
 ##############
 
@@ -370,7 +370,7 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
 
 def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
 
-  npoints = numberofintegrationpoints((ncoord,nelnodes,elident))
+  npoints = numberofintegrationpoints(ncoord,nelnodes,elident)
   dxdxi = np.zeros((ncoord,ncoord))
   dxidx = np.zeros((ncoord,ncoord))
   dNdxs = np.zeros((nelnodes,ncoord))
@@ -378,6 +378,7 @@ def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
 
   xilist = integrationpoints(ncoord,nelnodes,npoints,elident)
   w = integrationweights(ncoord,nelnodes,npoints,elident)
+  xi = np.zeros((ncoord,npoints))  # Added TBC
 
   for intpt in range(0,npoints):
 
@@ -555,7 +556,7 @@ def facenodes(ncoord,nelnodes,elident,face):
     i3 = np.array([2,3,1])
     i4 = np.array([2,3,4,1])
 
-    list = np.zeros((nfacenodes(ncoord,nelnodes,face),1))
+    list = np.zeros((nfacenodes(ncoord,nelnodes,elident,face),1))
     
     if ncoord == 2:
         if nelnodes ==3:
@@ -579,14 +580,14 @@ def facenodes(ncoord,nelnodes,elident,face):
 
 def eldload(ncoord,ndof,nfacenodes,elident,coords,traction):
 
-  npoints = numberofintegrationpoints(ncoord-1,nfacenodes)
+  npoints = numberofintegrationpoints(ncoord-1,nfacenodes,elident)
 
   xi =  np.zeros((ncoord-1,1))
   dxdxi = np.zeros((ncoord,ncoord-1))
   r = np.zeros((ndof*nfacenodes,1))
   
-  xilist = integrationpoints(ncoord-1,nfacenodes,npoints)
-  w = integrationweights(ncoord-1,nfacenodes,npoints)
+  xilist = integrationpoints(ncoord-1,nfacenodes,npoints,elident)
+  w = integrationweights(ncoord-1,nfacenodes,npoints,elident)
 
   for intpt in range(0,npoints):
 
@@ -655,20 +656,20 @@ def globalstiffness(ncoord,ndof,nnode,coords,nelem,
 
 ################
 
-def globaltraction(ncoord,ndof,nnodes,ndloads,coords,
+def globaltraction(ncoord,ndof,nnodes,ndload,coords,
                    nelnodes,elident,connect,dloads,dofs):
 
   r = np.zeros((ndof*nnodes,1))
   traction = np.zeros((ndof,1))
 
-  for load in range(0,ndloads):
+  for load in range(0,ndload):
 # %
 # %     Extract the coords of the nodes on the appropriate element face
 # %
       lmn = int(dloads[0,load])
       face = int(dloads[1,load])
       n = nelnodes
-      ident = elident[int(lmn)]
+      ident = elident[lmn]
       nfnodes = nfacenodes(ncoord,n,ident,face)
       nodelist = facenodes(ncoord,n,ident,face)   
       lmncoord = np.zeros((ncoord,nfnodes))
@@ -691,9 +692,9 @@ def globaltraction(ncoord,ndof,nnodes,ndloads,coords,
       for a in range(0,nfnodes):
           for i in range(0,ndof):
               rw = (connect[int(nodelist[a]),int(dloads[0,load])])*ndof + i
-#                 print(rw)      
+    
               r[rw] = r[rw] + rel[(a)*ndof+i]
-  return F
+  return r
       
 ###############
 
@@ -706,14 +707,14 @@ def globalresidual(ncoord,ndof,nnode,coords,nelem,maxnodes,elident,nelnodes,conn
 
   for lmn in range(0,nelem):
 
-    for a in range(0,nelnodes[lmn]):
+    for a in range(0,nelnodes):          # range(0,nelnodes[lmn]):
         
         for i in range(0,ncoord):
           lmncoord[i,a] = coords[i,connect[a,lmn]]
         for i in range (0,ndof):
           lmncoord[i,a] = dofs[ndof*(connect[a,lmn]-1)+i]
 
-    n = nelnodes[lmn]
+    n = nelnodes                         # n = nelnodes[lmn]
     ident = elident[lmn]
     rel = elresid(ncoord,ndof,n,ident,lmncoord,materialprops,lmndof)
    
