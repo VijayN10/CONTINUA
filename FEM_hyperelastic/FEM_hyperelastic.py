@@ -25,7 +25,7 @@ coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])
 nelem = 1
 maxnodes = 4
 nelnodes = 4
-elident = np.array([1])
+elident = np.array([0])
 connect = np.array([[0],[1],[2],[3]])
 
 # No. nodes with prescribed displacements, with the prescribed displacements
@@ -505,10 +505,10 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
         Finv = np.linalg.inv(F)
         for a in range(0,nelnodes):
-            for i in range(0,ncoord):
-                dNdxs[a,i] = 0.0
-                for j in range(0,ncoord):
-                    dNdxs[a,i] = dNdxs[a,i] + dNdx[a,j]*Finv[j,i]
+          for i in range(0,ncoord):
+            dNdxs[a,i] = 0.0
+            for j in range(0,ncoord):
+              dNdxs[a,i] = dNdxs[a,i] + dNdx[a,j]*Finv[j,i]
       
         # Compute the stress
 
@@ -629,7 +629,7 @@ def globalstiffness(ncoord,ndof,nnode,coords,nelem,
     # %
         for a in range(0,nelnodes):
             for i in range(0,ncoord):
-                lmncoord[i,a] = coords[i,connect[a,lmn]]  # -1 added coords is having dimensions 2x4, thus j should be 0,1,2,3. connect[3,0]=4. coord[i,4]==>coord[i,4-1]  OR Changed connect to start from 0 instead of 1
+                lmncoord[i,a] = coords[i,connect[a,lmn]]  # Coords is having dimensions 2x4, thus j should be 0,1,2,3. But, connect[3,0]=4. coord[i,4] gives en error; Solution --> coord[i,4-1]  OR Changed connect to start from 0 instead of 1
             for i in range(0,ndof):
                 lmndof[i,a] = dofs[ndof*(connect[a,lmn]-1)+i]
 
