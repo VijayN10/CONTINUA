@@ -51,7 +51,7 @@ def materialstiffness(ndof,ncoord,B,J,materialprops):
     C = np.zeros((ndof,ncoord,ndof,ncoord))
     
     if ncoord == 2:
-        Bqq = B[0,1]+B[0,2] + 1
+        Bqq = B[0,0]+B[1,1] + 1
         for i in range(0,2):
             for j in range(0,2):
                 for k in range(0,2):
