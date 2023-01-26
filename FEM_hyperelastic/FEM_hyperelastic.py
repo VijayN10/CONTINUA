@@ -245,12 +245,12 @@ def shapefunctions(nelnodes,ncoord,elident,xi):
   # 
   if (ncoord == 1):
     if (nelnodes==2):
-      N[0] = 0.5*(1+xi[0])
-      N[1] = 0.5*(1-xi[0])
+      N[0] = 0.5*(1+xi[0][0])
+      N[1] = 0.5*(1-xi[0][0])
     elif (nelnodes == 3):
-      N[0] = -0.5*xi[0]*(1-xi[0])
-      N[1] =  0.5*xi[0]*(1+xi[0])
-      N[2] = (1-xi[0])*(1+xi[0])
+      N[0] = -0.5*xi[0][0]*(1-xi[0][0])
+      N[1] =  0.5*xi[0][0]*(1+xi[0][0])
+      N[2] = (1-xi[0][0])*(1+xi[0][0])
 
   # %
   # %  2D elements
@@ -260,34 +260,34 @@ def shapefunctions(nelnodes,ncoord,elident,xi):
   #     Triangular element
   # 
     if ( nelnodes == 3 ):
-      N[0] = xi[0]
-      N[1] = xi[0]
-      N[2] = 1-xi[0]-xi[0]              
+      N[0] = xi[0][0]
+      N[1] = xi[0][0]
+      N[2] = 1-xi[0][0]-xi[0][0]              
     elif ( nelnodes == 6 ):
-      xi3 = 1-xi[0]-xi[0]
-      N[0] = (2*xi[0]-1)*xi[0]
-      N[1] = (2*xi[0]-1)*xi[0]
+      xi3 = 1-xi[0][0]-xi[0][0]
+      N[0] = (2*xi[0][0]-1)*xi[0][0]
+      N[1] = (2*xi[0][0]-1)*xi[0][0]
       N[2] = (2*xi3-1)*xi3
-      N[3] = 4*xi[0]*xi[0]
-      N[4] = 4*xi[0]*xi3
-      N[5] = 4*xi3*xi[0]
+      N[3] = 4*xi[0][0]*xi[0][0]
+      N[4] = 4*xi[0][0]*xi3
+      N[5] = 4*xi3*xi[0][0]
   # 
   #     Rectangular element
   #                   
     elif ( nelnodes == 4 ):
-      N[0] = 0.25*(1-xi[0])*(1-xi[0])
-      N[1] = 0.25*(1+xi[0])*(1-xi[0])
-      N[2] = 0.25*(1+xi[0])*(1+xi[0])
-      N[3] = 0.25*(1-xi[0])*(1+xi[0])
+      N[0] = 0.25*(1-xi[0][0])*(1-xi[0][0])
+      N[1] = 0.25*(1+xi[0][0])*(1-xi[0][0])
+      N[2] = 0.25*(1+xi[0][0])*(1+xi[0][0])
+      N[3] = 0.25*(1-xi[0][0])*(1+xi[0][0])
     elif (nelnodes == 8):
-      N[0] = -0.25*(1-xi[0])*(1-xi[0])*(1+xi[0]+xi[0])
-      N[1] = 0.25*(1+xi[0])*(1-xi[0])*(xi[0]-xi[0]-1)
-      N[2] = 0.25*(1+xi[0])*(1+xi[0])*(xi[0]+xi[0]-1)
-      N[3] = 0.25*(1-xi[0])*(1+xi[0])*(xi[0]-xi[0]-1)
-      N[4] = 0.5*(1-xi[0]*xi[0])*(1-xi[0])
-      N[5] = 0.5*(1+xi[0])*(1-xi[0]*xi[0])
-      N[6] = 0.5*(1-xi[0]*xi[0])*(1+xi[0])
-      N[7] = 0.5*(1-xi[0])*(1-xi[0]*xi[0])
+      N[0] = -0.25*(1-xi[0][0])*(1-xi[0][0])*(1+xi[0][0]+xi[0][0])
+      N[1] = 0.25*(1+xi[0][0])*(1-xi[0][0])*(xi[0][0]-xi[0][0]-1)
+      N[2] = 0.25*(1+xi[0][0])*(1+xi[0][0])*(xi[0][0]+xi[0][0]-1)
+      N[3] = 0.25*(1-xi[0][0])*(1+xi[0][0])*(xi[0][0]-xi[0][0]-1)
+      N[4] = 0.5*(1-xi[0][0]*xi[0][0])*(1-xi[0][0])
+      N[5] = 0.5*(1+xi[0][0])*(1-xi[0][0]*xi[0][0])
+      N[6] = 0.5*(1-xi[0][0]*xi[0][0])*(1+xi[0][0])
+      N[7] = 0.5*(1-xi[0][0])*(1-xi[0][0]*xi[0][0])
 
   return N
 
@@ -305,9 +305,9 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
           dNdxi[0,0] = 0.5
           dNdxi[1,0] = -0.5
       elif (nelnodes == 3):
-          dNdxi[0,0] = -0.5+xi[0]
-          dNdxi[1,0] =  0.5+xi[0]
-          dNdxi[2,0] = -2.*xi[0]
+          dNdxi[0,0] = -0.5+xi[0][0]
+          dNdxi[1,0] =  0.5+xi[0][0]
+          dNdxi[2,0] = -2.*xi[0][0]
 
 # 
 #   2D elements
@@ -323,46 +323,46 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
       dNdxi[2,0] = -1
       dNdxi[2,1] = -1               
     elif ( nelnodes == 6 ):
-      xi3 = 1-xi[0]-xi[1]
-      dNdxi[0,0] = 4*xi[0]-1
-      dNdxi[1,1] = 4*xi[1]-1
+      xi3 = 1-xi[0][0]-xi[1][0]
+      dNdxi[0,0] = 4*xi[0][0]-1
+      dNdxi[1,1] = 4*xi[1][0]-1
       dNdxi[2,0] = -(4*xi3-1)
       dNdxi[2,1] = -(4*xi3-1)
-      dNdxi[3,0] = 4*xi[1]
-      dNdxi[3,1] = 4*xi[0]
-      dNdxi[4,0] = -4*xi[1]
-      dNdxi[4,1] = -4*xi[0]
-      dNdxi[5,0] = 4*xi3 - 4*xi[0]
-      dNdxi[5,1] = 4*xi3 - 4*xi[1]
+      dNdxi[3,0] = 4*xi[1][0]
+      dNdxi[3,1] = 4*xi[0][0]
+      dNdxi[4,0] = -4*xi[1][0]
+      dNdxi[4,1] = -4*xi[0][0]
+      dNdxi[5,0] = 4*xi3 - 4*xi[0][0]
+      dNdxi[5,1] = 4*xi3 - 4*xi[1][0]
 # 
 #     Rectangular element
 #                   
     elif ( nelnodes == 4 ):
-      dNdxi[0,0] = -0.25*(1-xi[1])
-      dNdxi[0,1] = -0.25*(1-xi[0])
-      dNdxi[1,0] = 0.25*(1-xi[1])
-      dNdxi[1,1] = -0.25*(1+xi[0])
-      dNdxi[2,0] = 0.25*(1+xi[1])
-      dNdxi[2,1] = 0.25*(1+xi[0])
-      dNdxi[3,0] = -0.25*(1+xi[1])
-      dNdxi[3,1] = 0.25*(1-xi[0])
+      dNdxi[0,0] = -0.25*(1-xi[1][0])
+      dNdxi[0,1] = -0.25*(1-xi[0][0])
+      dNdxi[1,0] = 0.25*(1-xi[1][0])
+      dNdxi[1,1] = -0.25*(1+xi[0][0])
+      dNdxi[2,0] = 0.25*(1+xi[1][0])
+      dNdxi[2,1] = 0.25*(1+xi[0][0])
+      dNdxi[3,0] = -0.25*(1+xi[1][0])
+      dNdxi[3,1] = 0.25*(1-xi[0][0])
     elif (nelnodes == 8):
-      dNdxi[0,0] = 0.25*(1-xi[1])*(2.*xi[0]+xi[1])
-      dNdxi[1,2] = 0.25*(1-xi[0])*(xi[0]+2.*xi[1])
-      dNdxi[1,0] = 0.25*(1-xi[1])*(2.*xi[0]-xi[1])
-      dNdxi[1,1] = 0.25*(1+xi[0])*(2.*xi[1]-xi[0])
-      dNdxi[2,0] = 0.25*(1+xi[1])*(2.*xi[0]+xi[1])
-      dNdxi[2,1] = 0.25*(1+xi[0])*(2.*xi[1]+xi[0])
-      dNdxi[3,0] = 0.25*(1+xi[1])*(2.*xi[0]-xi[1])
-      dNdxi[3,1] = 0.25*(1-xi[0])*(2.*xi[1]-xi[0])
-      dNdxi[4,0] = -xi[0]*(1-xi[1])
-      dNdxi[4,1] = -0.5*(1-xi[0]*xi[0])
-      dNdxi[5,0] = 0.5*(1-xi[1]*xi[1])
-      dNdxi[5,1] = -(1+xi[0])*xi[1]
-      dNdxi[6,0] = -xi[0]*(1+xi[1])
-      dNdxi[6,1] = 0.5*(1-xi[0]*xi[0])
-      dNdxi[7,0] = -0.5*(1-xi[1]*xi[1])
-      dNdxi[7,1] = -(1-xi[0])*xi[1]
+      dNdxi[0,0] = 0.25*(1-xi[1][0])*(2.*xi[0][0]+xi[1][0])
+      dNdxi[1,2] = 0.25*(1-xi[0][0])*(xi[0][0]+2.*xi[1][0])
+      dNdxi[1,0] = 0.25*(1-xi[1][0])*(2.*xi[0][0]-xi[1][0])
+      dNdxi[1,1] = 0.25*(1+xi[0][0])*(2.*xi[1][0]-xi[0][0])
+      dNdxi[2,0] = 0.25*(1+xi[1][0])*(2.*xi[0][0]+xi[1][0])
+      dNdxi[2,1] = 0.25*(1+xi[0][0])*(2.*xi[1][0]+xi[0][0])
+      dNdxi[3,0] = 0.25*(1+xi[1][0])*(2.*xi[0][0]-xi[1][0])
+      dNdxi[3,1] = 0.25*(1-xi[0][0])*(2.*xi[1][0]-xi[0][0])
+      dNdxi[4,0] = -xi[0][0]*(1-xi[1][0])
+      dNdxi[4,1] = -0.5*(1-xi[0][0]*xi[0][0])
+      dNdxi[5,0] = 0.5*(1-xi[1][0]*xi[1][0])
+      dNdxi[5,1] = -(1+xi[0][0])*xi[1][0]
+      dNdxi[6,0] = -xi[0][0]*(1+xi[1][0])
+      dNdxi[6,1] = 0.5*(1-xi[0][0]*xi[0][0])
+      dNdxi[7,0] = -0.5*(1-xi[1][0]*xi[1][0])
+      dNdxi[7,1] = -(1-xi[0][0])*xi[1][0]
     
   return dNdxi
 
@@ -394,7 +394,7 @@ def elresid(ncoord,ndof,nelnodes,elident,coord,materialprops,displacement):
         for a in range(0,nelnodes):
           dxdxi[i,j] = dxdxi[i,j] + coord[i,a]*dNdxi[a,j]
 
-
+    print(dxdxi)
     dxidx = np.linalg.inv(dxdxi)
     dt = np.linalg.det(dxdxi)
 
