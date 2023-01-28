@@ -774,7 +774,7 @@ for step in range(0,nsteps):
     
 
     for n in range(0,nfix):
-      rw = int(ndof*( fixnodes[0,n] )  + fixnodes[1,n])
+      rw = int(ndof*( fixnodes[0,n] - 1)  + fixnodes[1,n])
       for cl in range(0,ndof*nnode):
         K[rw,cl] =0
           
@@ -789,9 +789,9 @@ for step in range(0,nsteps):
     err1 = np.sum(dw.conj()*dw, axis=0)
     err2 = np.sum(b.conj()*b, axis=0)
 
-    err1 = np.sqrt(err1/wnorm)
-    err2 = np.sqrt(err2)/(ndof*nnode)
-    print(1,f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}\n');
+    # err1 = np.sqrt(err1/wnorm)
+    # err2 = np.sqrt(err2)/(ndof*nnode)
+    # print(1,f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}\n');
 
 
 forcevdisp[1,step] = loadfactor*dloads[2,0]
@@ -800,9 +800,9 @@ forcevdisp[0,step] = w[2]
 
 ##########################
 
-plt.plot(forcevdisp[0,:],forcevdisp[1,:],'r','LineWidth',3)
-plt.xlabel({'Displacement'},'FontSize',16)
-plt.ylabel({'Force'},'FontSize',16)
+# plt.plot(forcevdisp[0,:],forcevdisp[1,:],'r','LineWidth',3)
+# plt.xlabel({'Displacement'},'FontSize',16)
+# plt.ylabel({'Force'},'FontSize',16)
 
 #########################
 
