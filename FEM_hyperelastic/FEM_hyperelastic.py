@@ -740,7 +740,7 @@ def globalresidual(ncoord,ndof,nnode,coords,nelem,maxnodes,elident,nelnodes,conn
 
 w = np.zeros((nnode*ndof,1))
 
-nsteps = 1
+nsteps = 5
 tol = 0.0001
 maxit = 1
 relax = 1.0
@@ -752,12 +752,12 @@ forcevdisp[1,0] = 0.0
 
 for step in range(0,nsteps):
 
-  loadfactor = step/nsteps
+  loadfactor = (step+1)/nsteps    # +1 added 
 
   err1 = 1.0
   nit = 0
   
-  print(1, f'\n Step {step} Load {loadfactor}\n')
+  # print(1, f'\n Step {step} Load {loadfactor}\n')
 
   while ((err1>tol) and (nit<maxit)):         # Newton Raphson loop
     nit = nit + 1
@@ -779,7 +779,7 @@ for step in range(0,nsteps):
         K[rw,cl] =0
           
       K[rw,rw]= 1.0
-      r[rw] = fixnodes[2,n]
+      b[rw,0] = loadfactor*fixnodes[2,n]-w[rw,0]
 
 
     dw = np.linalg.solve(K,b)
@@ -789,9 +789,9 @@ for step in range(0,nsteps):
     err1 = np.sum(dw.conj()*dw, axis=0)
     err2 = np.sum(b.conj()*b, axis=0)
 
-    # err1 = np.sqrt(err1/wnorm)
-    # err2 = np.sqrt(err2)/(ndof*nnode)
-    # print(1,f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}\n');
+    err1 = np.sqrt(err1/wnorm)  
+    err2 = np.sqrt(err2)/(ndof*nnode)
+    print(1,f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}\n')
 
 
 forcevdisp[1,step] = loadfactor*dloads[2,0]
@@ -801,7 +801,7 @@ forcevdisp[0,step] = w[2]
 ##########################
 
 # plt.plot(forcevdisp[0,:],forcevdisp[1,:],'r','LineWidth',3)
-# plt.xlabel({'Displacement'},'FontSize',16)
+# plt.xlabel({'Displacement'},'FontSize',16)    # Error
 # plt.ylabel({'Force'},'FontSize',16)
 
 #########################
@@ -810,7 +810,4 @@ defcoords = np.zeros((ndof,nnode))
 scalefactor = 1.0
 for i in range(0,nnode):
   for j in range(0,ndof):
-      defcoords[j,i] = coords[j,i] + scalefactor*w[ndof*(i-1)+j-1]  # Check?
-
-
-
+      defcoords[j][i] = coords[j][i] + scalefactor*w[ndof*(i-1)+j-1]  # Check?
