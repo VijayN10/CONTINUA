@@ -380,8 +380,9 @@ def elresid(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
   dNdx = np.zeros((nelnodes,ncoord)) # Added TBC
   coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])  # Added here, if not added then it takes default as zero matrix creating problem with calculating dxdxi (giving singular matrix)
   
-  F = np.zeros((ncoord,ncoord))  #Added TBC
 
+  F = np.zeros((ncoord,ncoord))  
+  displacement = np.zeros((ncoord,nelnodes))   # added (initialize 2 x 4 matrix)
 
   for intpt in range(0,npoints):
 
@@ -409,11 +410,11 @@ def elresid(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
     for i in range(0,ncoord):
       for j in range(0,ncoord):
-          F[i,j] = 0.0
-          if (i==j):
-            F[i,i] = 1.0
-          for a in range(0,nelnodes):
-            F[i,i] = F[i,j] + (displacement[i,a]*dNdx[a,j])
+        F[i,j] = 0.0
+        if (i==j):
+          F[i,i] = 1.0
+        for a in range(0,nelnodes):
+          F[i,j] = F[i,j] + (displacement[i,a]*dNdx[a,j])
 
     J = np.linalg.det(F)
     B = F*(F.transpose())
@@ -490,9 +491,12 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
 
         # Compute the deformation gradients by differentiating displacements
 
-        # F = np.zeros((ncoord,ncoord))  # TBC Calculated in elresid function?
-        print(F)
-        print(F.shape)
+        F = np.zeros((ncoord,ncoord))  # TBC Calculated in elresid function?
+
+        displacement = np.zeros((ncoord,nelnodes))   # added (initialize 2 x 4 matrix)
+
+        # print(F)
+        # print(F.shape)
 
         for i in range(0,ncoord):
             for j in range(0,ncoord):
@@ -502,8 +506,8 @@ def elstif(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
                     for a in range(0,nelnodes):
                         F[i,j] = F[i,j] + (displacement[i,a]*dNdx[a,j])
 
-        print(F)
-        print(F.shape)
+        # print(F)
+        # print(F.shape)
         
         # Compute Bbar and J
 
@@ -766,7 +770,7 @@ for step in range(0,nsteps):
               nelem,maxnodes,elident,nelnodes,
                     connect,materialprops,w)
     
-    b = loadfactor*F - R
+    b = loadfactor*F - r
     
 
     for n in range(0,nfix):
