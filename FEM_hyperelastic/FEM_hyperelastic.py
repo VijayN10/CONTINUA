@@ -423,7 +423,7 @@ def elresid(ncoord,ndof,nelnodes,elident,coords,materialprops,displacement):
     Finv = np.linalg.inv(F)
     for a in range(0,nelnodes):
       for i in range(0,ncoord):
-        dNdxs[a.i] = 0.0
+        dNdxs[a,i] = 0.0
         for j in range(0,ncoord):
           dNdxs[a,i] = dNdxs[a,i] + dNdx[a,j]*Finv[j,i]  
 
@@ -729,7 +729,7 @@ def globalresidual(ncoord,ndof,nnode,coords,nelem,maxnodes,elident,nelnodes,conn
     ident = elident[lmn]
     rel = elresid(ncoord,ndof,n,ident,lmncoord,materialprops,lmndof)
    
-    for a in range(0,nelnodes[lmn]):
+    for a in range(0,nelnodes):
       for i in range(0,ndof):
           rw = ndof*(connect[a,lmn]-1)+i
           resid[rw] = resid[rw] + rel[ndof*(a-1)+i]
