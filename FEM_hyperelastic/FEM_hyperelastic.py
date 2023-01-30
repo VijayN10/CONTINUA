@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 # INPUT
 
@@ -757,48 +758,42 @@ for step in range(0,nsteps):
   err1 = 1.0
   nit = 0
   
-  # print(1, f'\n Step {step} Load {loadfactor}\n')
+  while (err1 > tol and nit < maxit):
+    nit += 1
 
-  while ((err1>tol) and (nit<maxit)):         # Newton Raphson loop
-    nit = nit + 1
+    K = globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, w)
+    F = globaltraction(ncoord, ndof, nnode, ndload, coords, nelnodes, elident, connect, dloads, w)
+    R = globalresidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, w)
 
-    K = globalstiffness(ncoord,ndof,nnode,coords,
-            nelem,maxnodes,elident,nelnodes,connect,materialprops,w)
-    F = globaltraction(ncoord,ndof,nnode,ndload,coords,
-                nelnodes,elident,connect,dloads,w)
-    r = globalresidual(ncoord,ndof,nnode,coords,
-              nelem,maxnodes,elident,nelnodes,
-                    connect,materialprops,w)
-    
-    b = loadfactor*F - r
-    
+    b = loadfactor * F - R
 
-    for n in range(0,nfix):
-      rw = int(ndof*( fixnodes[0,n] - 1)  + fixnodes[1,n])
-      for cl in range(0,ndof*nnode):
-        K[rw,cl] =0
-          
-      K[rw,rw]= 1.0
-      b[rw,0] = loadfactor*fixnodes[2,n]-w[rw,0]
+    # Fix constrained nodes
+    for n in range(nfix):
+        rw = ndof * (fixnodes[0][n] - 1) + fixnodes[1][n]
+        for cl in range(ndof * nnode):
+            K[rw][cl] = 0
+        K[rw][rw] = 1.
+        b[rw] = loadfactor * fixnodes[2][n] - w[rw]
 
+    # Solve for the correction
+    dw = np.linalg.solve(K, b)
 
-    dw = np.linalg.solve(K,b)
-
-    w = w + relax*dw
-    wnorm = np.sum(w.conj()*w, axis=0)
-    err1 = np.sum(dw.conj()*dw, axis=0)
-    err2 = np.sum(b.conj()*b, axis=0)
-
-    err1 = np.sqrt(err1/wnorm)  
-    err2 = np.sqrt(err2)/(ndof*nnode)
-    print(1,f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}\n')
-    nit =+ 1
-
-  # fprintf(outfile,'\n\n Step %f Load %f\n',step,loadfactor);
+    # Check convergence
+    w += relax * dw
+    wnorm = np.dot(w.flatten(), w.flatten())
+    err1 = np.dot(dw.flatten(), dw.flatten())
+    err2 = np.dot(b.flatten(), b.flatten())
+    err1 = math.sqrt(err1 / wnorm)
+    err2 = math.sqrt(err2) / (ndof * nnode)
+    print("Iteration number", nit, "Correction", err1, "Residual", err2, "tolerance", tol)
 
 
-forcevdisp[1,step] = loadfactor*dloads[2,0]
-forcevdisp[0,step] = w[2]
+  with open("FEM_results.txt", "w") as outfile:
+    outfile.write('\n\n Step {} Load {}\n'.format(step, loadfactor))
+
+
+  forcevdisp[0, step+1] = loadfactor*dloads[2, 0]
+  forcevdisp[1, step+1] = w[2]
 
 
 ##########################
@@ -810,13 +805,47 @@ plt.show()
 
 #########################
 
+
+# def plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, color):
+#     f2D_3 = [1, 2, 3]
+#     f2D_4 = [1, 2, 3, 4]
+#     f2D_6 = [1, 4, 2, 5, 3, 6]
+#     f2D_8 = [1, 5, 2, 6, 3, 7, 4, 8]
+
+#     if ncoord == 2:
+#         for lmn in range(nelem):
+#             x = []
+#             for i in range(nelnodes):
+#                 x.append(coords[:, connect[i][lmn]])
+
+#             plt.scatter(x[0], x[1], marker='o', color='r')
+
+#             if nelnodes == 3:
+#                 plt.triplot(x[0], x[1], f2D_3, color=color)
+#             elif nelnodes == 4:
+#                 plt.triplot(x[0], x[1], f2D_4, color=color)
+#             elif nelnodes == 6:
+#                 plt.triplot(x[0], x[1], f2D_6, color=color)
+#             elif nelnodes == 8 or nelnodes == 9:
+#                 plt.triplot(x[0], x[1], f2D_8, color=color)
+
+#     plt.axis('equal')
+
+
+###############################
+
 defcoords = np.zeros((ndof,nnode))
 scalefactor = 1.0
 for i in range(0,nnode):
   for j in range(0,ndof):
       defcoords[j][i] = coords[j][i] + scalefactor*w[ndof*(i-1)+j-1]  # Check?
 
-
+# plt.figure()
+# plt.gca().set_aspect('equal')
+# plotmesh(coords,ncoord,nnode,connect,nelem,elident,nelnodes,'g')
+# plt.hold(True)
+# plotmesh(defcoords,ncoord,nnode,connect,nelem,elident,nelnodes,'r')
+# plt.show()
 #########################
 
 # outfile= open("FEM_results.txt","w+")
