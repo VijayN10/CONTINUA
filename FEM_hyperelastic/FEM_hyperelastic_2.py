@@ -28,7 +28,7 @@ nelem = 1
 maxnodes = 4
 nelnodes = 4
 elident = np.array([[1]])                 # elident = np.array([[1]])
-connect = np.array([[0],[1],[2],[3]])     # connect = np.array([[1],[2],[3],[4]])
+connect = np.array([[1],[2],[3],[4]])     # connect = np.array([[1],[2],[3],[4]])
 
 # No. nodes with prescribed displacements, with the prescribed displacements
 
@@ -633,7 +633,7 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
         # Extract coords of nodes, DOF for the current element
         for a in range(nelnodes):
             for i in range(ncoord):
-                lmncoord[i][a] = coords[i][connect[a][lmn]]
+                lmncoord[i][a] = coords[i][connect[a][lmn]-1]
             for i in range(ndof):
                 lmndof[i][a] = dofs[ndof*(connect[a][lmn]-1)+i]
         n = nelnodes
@@ -663,7 +663,7 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
         lmncoord = np.zeros((ncoord, nfnodes))
         for a in range(nfnodes):
             for i in range(ncoord):
-                lmncoord[i, a] = coords[i, connect[int(nodelist[a]), int(dloads[0, load])-1]]
+                lmncoord[i, a] = coords[i, connect[int(nodelist[a]-1), int(dloads[0, load]-1)]-1]
             # for i in range(ndof):
             #     lmndof[i, a] = dofs[ndof*(connect[int(nodelist[a]), int(dloads[0, load])]-1)+i]
         for i in range(ndof):
@@ -671,7 +671,7 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
         rel = eldload(ncoord, ndof, nfnodes, ident, lmncoord, traction)
         for a in range(nfnodes):
             for i in range(ndof):
-                rw = (connect[int(nodelist[a]), int(dloads[0, load])-2])*ndof+i
+                rw = (connect[int(nodelist[a])-2, int(dloads[0, load])-1])*ndof+i
                 r[rw] = r[rw] + rel[(a-1)*ndof+i]
     return r
 
@@ -874,9 +874,9 @@ for step in range(1, nsteps+1):
         err2 = math.sqrt(err2)/(ndof*nnode)
 
         print(f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}')
-        print(w)
+    #     print(w)
     
-    print(w)
+    # print(w)
     print(f'\n\n Step {step} Load {loadfactor}\n')
 
     # print_results(outfile, 
