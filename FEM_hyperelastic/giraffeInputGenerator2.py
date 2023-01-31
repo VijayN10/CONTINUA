@@ -624,13 +624,13 @@ NodalDisplacement 1 NodeSet 5 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
 0	0	0	0	0	0	0    
     """)
-    file.write(f'1 {disp[0,0]:.12f} {disp[0,1]:.12f} 0 0 0 0\n')
+    file.write(f'2 {disp[0,0]:.12f} {disp[0,1]:.12f} 0 0 0 0\n')
     file.write("""
 NodalDisplacement 2 NodeSet 6 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
 0	0	0	0	0	0	0
     """)
-    file.write(f'1 {disp[1,0]:.12f} {disp[1,1]:.12f} 0 0 0 0\n\n')
+    file.write(f'2 {disp[1,0]:.12f} {disp[1,1]:.12f} 0 0 0 0\n\n')
 
 
     file.write("""
@@ -641,14 +641,14 @@ NodalDisplacement 3 NodeSet 7 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
 0	0	0	0	0	0	0
     """)
-    file.write(f'1 {disp[2,0]:.12f} {disp[2,1]:.12f} 0 0 0 0\n')
+    file.write(f'2 {disp[2,0]:.12f} {disp[2,1]:.12f} 0 0 0 0\n')
 
     file.write("""
 NodalDisplacement 4 NodeSet 8 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
 0	0	0	0	0	0	0
     """)
-    file.write(f'1 {disp[3,0]:.12f} {disp[3,1]:.12f} 0 0 0 0\n\n')
+    file.write(f'2 {disp[3,0]:.12f} {disp[3,1]:.12f} 0 0 0 0\n\n')
 
 
     file.write("""
@@ -657,15 +657,16 @@ NodalDisplacement 4 NodeSet 8 CS 125 NTimes 2
 ///////////////////////////////
 NodalDisplacement 5 NodeSet 9 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
+0	0	0	0	0	0	0
     """)
-    file.write(f'1 {disp[4,0]:.12f} {disp[4,1]:.12f} 0 0 0 0\n')
+    file.write(f'2 {disp[4,0]:.12f} {disp[4,1]:.12f} 0 0 0 0\n')
 
     file.write("""
 NodalDisplacement 6 NodeSet 10 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
 0	0	0	0	0	0	0
     """)
-    file.write(f'1 {disp[5,0]:.12f} {disp[5,1]:.12f} 0 0 0 0\n\n')
+    file.write(f'2 {disp[5,0]:.12f} {disp[5,1]:.12f} 0 0 0 0\n\n')
 
     file.write("""
 ///////////////////////////////
@@ -683,3 +684,91 @@ NodalDisplacement 8 NodeSet 12 CS 125 NTimes 2
 0	0	0	0	0	0	0
     """)
     file.write(f'1 {disp[7,0]:.12f} {disp[7,1]:.12f} 0 0 0 0\n\n')
+
+    file.write("""
+
+SpecialConstraints 8
+SameRotation 1 Nodes 1  33 BoolTable 1
+SameRotation 2 Nodes 34 66 BoolTable 1
+SameRotation 3 Nodes 67 99 BoolTable 1
+SameRotation 4 Nodes 100 132 BoolTable 1
+
+NodalConstraintDOF 5 Nodes 1  33 
+	UX		BoolTable	0
+	UY		BoolTable	0 
+	UZ		BoolTable	1 
+	ROTX	BoolTable	0 
+	ROTY	BoolTable	0	
+	ROTZ	BoolTable	0
+NodalConstraintDOF 6 Nodes 34 66
+	UX		BoolTable	0
+	UY		BoolTable	0 
+	UZ		BoolTable	1 
+	ROTX	BoolTable	0 
+	ROTY	BoolTable	0	
+	ROTZ	BoolTable	0
+NodalConstraintDOF 7 Nodes 67 99 
+	UX		BoolTable	0
+	UY		BoolTable	0 
+	UZ		BoolTable	1 
+	ROTX	BoolTable	0 
+	ROTY	BoolTable	0	
+	ROTZ	BoolTable	0
+NodalConstraintDOF 8 Nodes 100 132
+	UX		BoolTable	0
+	UY		BoolTable	0 
+	UZ		BoolTable	1 
+	ROTX	BoolTable	0 
+	ROTY	BoolTable	0	
+	ROTZ	BoolTable	0
+
+SolutionSteps 1
+
+Dynamic 1
+EndTime 1
+TimeStep 0.001
+MaxTimeStep 0.02
+MinTimeStep 0.000001
+MaxIt 10
+MinIt 3
+ConvIncrease 4
+IncFactor 1.5
+Sample 1
+RayleighDamping Alpha 0.0 Beta 0.0 Update 0
+NewmarkCoefficients Beta 0.3 Gamma 0.5
+
+SolverOptions
+Processors 4 LinSys Direct
+
+Monitor Sample 1
+MonitorNodeSets 1 2 3 4
+
+PostFiles
+MagFactor 1
+WriteMesh 0
+WriteRenderMesh 1
+WriteRigidContactSurfaces 0
+WriteFlexibleContactSurfaces 1
+WriteForces 0
+WriteConstraints 0
+WriteSpecialConstraints 1
+WriteContactForces 1
+WriteRenderRigidBodies 0
+WriteRenderParticles 0
+
+ConvergenceCriteria
+ForceTolerance 1e-4
+MomentTolerance 1e-4
+ForceMinimumReference 1e-5
+MomentMinimumReference 1e-5
+ConstraintMinimumReference 1e-7
+DisplacementTolerance 1e-2
+RotationTolerance 1e-2
+LagrangeTolerance 1e-3
+DisplacementMinimumReference 1e-3
+RotationMinimumReference 1e-3
+LagrangeMinimumReference 1e-3
+DivergenceReference 1e+15
+    """)
+
+    
