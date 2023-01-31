@@ -111,6 +111,16 @@ dloads = np.array([[1],[2],[3],[0]])      # dloads = np.array([[1],[2],[3],[0]])
 #     return nprops,materialprops,ncoord,ndof,nnode,coords,nelem,maxnodes,connect,nelnodes,elident,nfix,fixnodes,ndload,dloads
 
 
+
+######################################################################################################################################################
+
+
+#================= Material Stiffness ==================================
+#
+#    Computes material stiffness tensor C_{ijkl} 
+#    Currently coded either for plane strain or general 3D.
+
+
 def materialstiffness(ndof, ncoord, B, J, materialprops):
     mu1 = materialprops[0]
     K1 = materialprops[1]
@@ -129,6 +139,13 @@ def materialstiffness(ndof, ncoord, B, J, materialprops):
 
     return C
 
+######################################################################################################################################################
+
+#================= Stress ==================================
+#
+#   Computes stress sigma_{ij} given B_{ij}
+
+
 def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
   stress = np.zeros((ndof,ncoord))
   dl = [[1,0,0],[0,1,0],[0,0,1]]
@@ -143,6 +160,13 @@ def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
           stress[i][j] = mu1*(B[i][j] - Bkk*dl[i][j]/3.)/J**(2/3) + K1*J*(J-1)*dl[i][j]
 
   return stress
+
+######################################################################################################################################################
+
+#====================== No. integration points =============================
+#
+#   Defines the number of integration points:be used for
+#   each element type
 
 
 def numberofintegrationpoints(ncoord, nelnodes, elident):
@@ -168,11 +192,17 @@ def numberofintegrationpoints(ncoord, nelnodes, elident):
             n = 27
     return n
 
+######################################################################################################################################################
+
+#====================== INTEGRATION POINTS ==================================
+#
+#   Defines positions of integration points
 
 def integrationpoints(ncoord, nelnodes, npoints, elident):
     # xi = np.zeros((npoints,ncoord))
     xi=np.zeros((ncoord,npoints))
 
+#   1D elements
     if ncoord == 1:
         if npoints == 1:
             xi[0][0] = 0.
@@ -184,7 +214,10 @@ def integrationpoints(ncoord, nelnodes, npoints, elident):
             xi[0][1] = 0.0
             xi[0][2] = -xi[0][0]
 
+#   2D elements
     elif ncoord == 2:
+
+    #   Triangular element
         if nelnodes == 3 or nelnodes == 6:
             if npoints == 1:
                 xi[0][0] = 1. / 3.
@@ -205,6 +238,8 @@ def integrationpoints(ncoord, nelnodes, npoints, elident):
                 xi[1][2] = 0.6
                 xi[0][3] = 0.2
                 xi[1][3] = 0.2
+
+    #   Rectangular element
         elif nelnodes == 4 or nelnodes == 8:
             if npoints == 1:
                 xi[0][0] = 0.
@@ -237,7 +272,15 @@ def integrationpoints(ncoord, nelnodes, npoints, elident):
                 xi[0][8] = -xi[0][0]
                 xi[1][8] = -xi[0][0]
 
+    #   3D elements not added
+
     return xi
+
+######################################################################################################################################################
+
+#================= INTEGRATION WEIGHTS ==================================
+#
+#   Defines integration weights w_i
 
 def integrationweights(ncoord, nelnodes, npoints, elident):
 
@@ -254,6 +297,7 @@ def integrationweights(ncoord, nelnodes, npoints, elident):
 
     # 2D elements
     elif ncoord == 2:
+
         # Triangular element
         if (nelnodes == 3 or nelnodes == 6):
             if npoints == 1:
@@ -264,6 +308,7 @@ def integrationweights(ncoord, nelnodes, npoints, elident):
                 w[2] = 1/6
             elif npoints == 4:
                 w = [-27/96, 25/96, 25/96, 25/96]
+
         # Rectangular element
         elif (nelnodes == 4 or nelnodes == 8):
             if npoints == 1:
@@ -299,6 +344,11 @@ def integrationweights(ncoord, nelnodes, npoints, elident):
 
     return w
 
+
+######################################################################################################################################################
+
+
+
 def shapefunctions(nelnodes, ncoord, elident, xi):
     
     N = np.zeros((nelnodes,1))
@@ -313,10 +363,9 @@ def shapefunctions(nelnodes, ncoord, elident, xi):
             N[0] = -0.5*xi[0]*(1-xi[0])
             N[1] =  0.5*xi[0]*(1+xi[0])
             N[2] = (1-xi[0])*(1+xi[0])
-
-  # %
-  # %  2D elements
-  # %
+#
+#  2D elements
+#
     elif (ncoord == 2):
   # 
   #     Triangular element
@@ -680,99 +729,99 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
 # def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads, dofs):
 
 
-    outfile.write('Nodal Displacements: \n')
-    if ndof == 2:
-        outfile.write(' Node      Coords         u1       u2 \n')
-        for i in range(1, nnode+1):
-            for j in np.nditer(coords[0][i-1]):
-                x = j
-            for j in np.nditer(coords[1][i-1]):
-                y = j
-            for j in np.nditer(dofs[2*i-1]):
-                u1 = j
-            for j in np.nditer(dofs[2*i-1]):
-                u2 = j
-        outfile.write('{:3d} {:8.4f} {:8.4f} {:8.4f} {:8.4f}\n'.format(i, x, y, u1, u2))
+#     outfile.write('Nodal Displacements: \n')
+#     if ndof == 2:
+#         outfile.write(' Node      Coords         u1       u2 \n')
+#         for i in range(1, nnode+1):
+#             for j in np.nditer(coords[0][i-1]):
+#                 x = j
+#             for j in np.nditer(coords[1][i-1]):
+#                 y = j
+#             for j in np.nditer(dofs[2*i-1]):
+#                 u1 = j
+#             for j in np.nditer(dofs[2*i-1]):
+#                 u2 = j
+#         outfile.write('{:3d} {:8.4f} {:8.4f} {:8.4f} {:8.4f}\n'.format(i, x, y, u1, u2))
 
 
 
-    outfile.write('\n\n Strains and Stresses \n')
+#     outfile.write('\n\n Strains and Stresses \n')
 
-    lmncoord = np.zeros((ncoord,maxnodes))
-    displacements = np.zeros((ndof,maxnodes))
+#     lmncoord = np.zeros((ncoord,maxnodes))
+#     displacements = np.zeros((ndof,maxnodes))
 
-    for lmn in range(1, nelem+1):
-        outfile.write(' \n Element; {} '.format(lmn))
-        if ncoord == 2:
-            outfile.write('  \n int pt    Coords          B_11      B_22     B_12      s_11       s_22      s_12 \n')
-        elif ncoord == 3:
-            outfile.write('\n int pt         Coords            B_11      B_22     B_33      B_12       B_13      B_23      s_11      s_22      s_33      s_12      s_13      s_23 \n')
+#     for lmn in range(1, nelem+1):
+#         outfile.write(' \n Element; {} '.format(lmn))
+#         if ncoord == 2:
+#             outfile.write('  \n int pt    Coords          B_11      B_22     B_12      s_11       s_22      s_12 \n')
+#         elif ncoord == 3:
+#             outfile.write('\n int pt         Coords            B_11      B_22     B_33      B_12       B_13      B_23      s_11      s_22      s_33      s_12      s_13      s_23 \n')
 
-        for a in range(1, nelnodes+1):
-            for i in range(1, ncoord+1):
-                lmncoord[i-1][a-1] = coords[i-1][connect[a-1][lmn-1]-1]
-            for i in range(1, ndof+1):
-                displacements[i-1][a-1] = dofs[ndof*(connect[a-1][lmn-1]-1)+i-1]
+#         for a in range(1, nelnodes+1):
+#             for i in range(1, ncoord+1):
+#                 lmncoord[i-1][a-1] = coords[i-1][connect[a-1][lmn-1]-1]
+#             for i in range(1, ndof+1):
+#                 displacements[i-1][a-1] = dofs[ndof*(connect[a-1][lmn-1]-1)+i-1]
 
-        n = nelnodes
-        ident = elident
+#         n = nelnodes
+#         ident = elident
 
-        npoints = numberofintegrationpoints(ncoord,n, elident)
-        dNdx = np.zeros((n,ncoord))
-        dxdxi = np.zeros((ncoord,ncoord))
-        xi = np.zeros((ncoord,1))
-        x = np.zeros((ncoord,1))
+#         npoints = numberofintegrationpoints(ncoord,n, elident)
+#         dNdx = np.zeros((n,ncoord))
+#         dxdxi = np.zeros((ncoord,ncoord))
+#         xi = np.zeros((ncoord,1))
+#         x = np.zeros((ncoord,1))
 
-        # Set up integration points
-        xilist = integrationpoints(ncoord,n,npoints, elident)
+#         # Set up integration points
+#         xilist = integrationpoints(ncoord,n,npoints, elident)
 
-        for intpt in range(1, npoints+1):
-            for i in range(0, ncoord):
-                xi[i] = xilist[i][intpt]
-            N = shapefunctions(n,ncoord,ident,xi)      
-            dNdxi = shapefunctionderivs(n,ncoord,ident,xi)
+#         for intpt in range(1, npoints+1):
+#             for i in range(0, ncoord):
+#                 xi[i] = xilist[i][intpt]
+#             N = shapefunctions(n,ncoord,ident,xi)      
+#             dNdxi = shapefunctionderivs(n,ncoord,ident,xi)
 
-            for i in range(1, ncoord+1):
-                x[i] = 0
-                for a in range(1, n+1):
-                    x[i] += lmncoord[i][a]*N[a]
+#             for i in range(1, ncoord+1):
+#                 x[i] = 0
+#                 for a in range(1, n+1):
+#                     x[i] += lmncoord[i][a]*N[a]
 
-            for i in range(1, ncoord+1):
-                for j in range(1, ncoord+1):
-                    dxdxi[i][j] = 0
-                    for a in range(1, n+1):
-                        dxdxi[i][j] += lmncoord[i][a]*dNdxi[a][j]
+#             for i in range(1, ncoord+1):
+#                 for j in range(1, ncoord+1):
+#                     dxdxi[i][j] = 0
+#                     for a in range(1, n+1):
+#                         dxdxi[i][j] += lmncoord[i][a]*dNdxi[a][j]
 
-            dxidx = np.linalg.inv(dxdxi)
-            for a in range(1, n+1):
-                for i in range(1, ncoord+1):
-                    dNdx[a][i] = 0
-                    for j in range(1, ncoord+1):
-                        dNdx[a][i] += dNdxi[a][j]*dxidx[j][i]
+#             dxidx = np.linalg.inv(dxdxi)
+#             for a in range(1, n+1):
+#                 for i in range(1, ncoord+1):
+#                     dNdx[a][i] = 0
+#                     for j in range(1, ncoord+1):
+#                         dNdx[a][i] += dNdxi[a][j]*dxidx[j][i]
 
-            for i in range(1, ncoord+1):
-                for j in range(1, ncoord+1):
-                    F[i][j] = 0
-                    if i==j:
-                        F[i][i] = 1
-                    for a in range(1, nelnodes+1):
-                        F[i][j] += displacements[i][a]*dNdx[a][j]
+#             for i in range(1, ncoord+1):
+#                 for j in range(1, ncoord+1):
+#                     F[i][j] = 0
+#                     if i==j:
+#                         F[i][i] = 1
+#                     for a in range(1, nelnodes+1):
+#                         F[i][j] += displacements[i][a]*dNdx[a][j]
 
-            J = np.linalg.det(F)
-            B = np.matmul(F, np.transpose(F))
+#             J = np.linalg.det(F)
+#             B = np.matmul(F, np.transpose(F))
 
-            Finv = np.linalg.inv(F)
-            for a in range(1, nelnodes+1):
-                for i in range(1, ncoord+1):
-                    dNdxs[a][i] = 0
-                    for j in range(1, ncoord+1):
-                        dNdxs[a][i] += dNdx[a][j]*Finv[j][i]
+#             Finv = np.linalg.inv(F)
+#             for a in range(1, nelnodes+1):
+#                 for i in range(1, ncoord+1):
+#                     dNdxs[a][i] = 0
+#                     for j in range(1, ncoord+1):
+#                         dNdxs[a][i] += dNdx[a][j]*Finv[j][i]
 
-            stress = Kirchhoffstress(ndof,ncoord,B,J,materialprops)
-            stress = stress/J
+#             stress = Kirchhoffstress(ndof,ncoord,B,J,materialprops)
+#             stress = stress/J
 
-            if ncoord == 2:
-                print("{:5d} {:7.4f} {:7.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f}".format(intpt, x[0], x[1], B[0][0], B[1][1], B[0][1], stress[0][0], stress[1][1], stress[0][1]), file=outfile)
+#             if ncoord == 2:
+#                 print("{:5d} {:7.4f} {:7.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f}".format(intpt, x[0], x[1], B[0][0], B[1][1], B[0][1], stress[0][0], stress[1][1], stress[0][1]), file=outfile)
 
 
 
@@ -809,19 +858,44 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
 
 # infile = "hyperelastic_quad4.txt"
 # infile = open('hyperelastic_quad4.txt', 'r')
-outfile = open('FEM_results.txt', 'w')
+# outfile = open('FEM_results.txt', 'w')
 
 # nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads = read_input_file("hyperelastic_quad4.txt")
 
 # infile.close()
-
-
 # plt.figure()
 # plt.triplot(coords[:,0], coords[:,1], connect)
 # plt.show()
 
 
+##########################################################################################################################################
+
+
+#============================ MAIN FEM ANALYSIS PROCEDURE ========================
+#
+#   w           Nodal displacements.  Let w_i^a be ith displacement component
+#               at jth node.  Then dofs contain (w_1^1, w_2^1, w_1^2, w_2^2....) for 2D
+#               and (w_1^1, w_2^1, w_3^1, w_1^2, w_2^2, w_3^2....) for 3D
+#   dw          Correction to nodal displacements.  Let w_i^a be ith displacement component
+#               at jth node.  Then dofs contain (w_1^1, w_2^1, w_1^2, w_2^2....) for 2D
+#               and (w_1^1, w_2^1, w_3^1, w_1^2, w_2^2, w_3^2....) for 3D
+#   K           Global stiffness matrix.  Stored as [K_1111 K_1112  K_1121  K_1122...
+#                                                    K_1211 K_1212  K_1221  K_1222...
+#                                                    K_2111 K_2112  K_2121  K_2122...]
+#               for 2D problem and similarly for 3D problem
+#   F           Force vector.  Currently only includes contribution from tractions
+#               acting on element faces (i.e. body forces are neglected)
+#   R           Volume contribution to residual
+#   b           RHS of equation system
+
+
 w = np.zeros((nnode*ndof,1))
+
+#  Here we specify how the Newton Raphson iteration should run
+#  Load is applied in nsteps increments;
+#  tol is the tolerance used in checking Newton-Raphson convergence
+#  maxit is the max no. Newton-Raphson iterations
+#  relax is the relaxation factor (Set to 1 unless big convergence problems)
 
 nsteps = 5
 tol = 0.0001
@@ -865,7 +939,6 @@ for step in range(1, nsteps+1):
         dw = np.linalg.solve(K,b)
         
         # Check convergence
-
         w = w + relax*dw
         wnorm = float(np.dot(w.T,w))
         err1 = float(np.dot(dw.T,dw))
@@ -874,15 +947,14 @@ for step in range(1, nsteps+1):
         err2 = math.sqrt(err2)/(ndof*nnode)
 
         print(f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}')
-    #     print(w)
     
-    # print(w)
     print(f'\n\n Step {step} Load {loadfactor}\n')
 
     # print_results(outfile, 
     #     nprops,materialprops,ncoord,ndof,nnode,coords, 
     #     nelem,maxnodes,connect,nelnodes,elident, 
     #     nfix,fixnodes,ndload,dloads,w)
+    
     # Store traction and displacement for plotting later
     forcevdisp[1,step] = loadfactor*dloads[2,0]
     forcevdisp[0,step] = w[2][0]
@@ -894,12 +966,27 @@ plt.xlabel('Displacement', fontsize=16)
 plt.ylabel('Force', fontsize=16)
 plt.show()
 
+
+#================================= POST-PROCESSING =================================
+#
+# Create a plot of the deformed mesh
+
+
 defcoords = np.zeros((ndof,nnode))
 scalefactor = 1.0
 for i in range(nnode):
     for j in range(ndof):
         defcoords[j,i] = coords[j,i] + scalefactor*w[ndof*(i-1)+j]
 
+# title_string ="Hyperelastic"
+
+# plt.scatter(coords[0],coords[1],s=20,color='m',marker='X',label='Undeformed coordinates')
+# plt.scatter(defcoords[0],defcoords[1],s=10,color='r',label='Deformed coordinates')
+# plt.title(title_string)
+# plt.legend()
+# plt.show()
+
+                    
 # plt.figure()
 # # plotmesh(coords,ncoord,nnode,connect,nelem,elident,nelnodes,'g')
 # plt.hold(True)
