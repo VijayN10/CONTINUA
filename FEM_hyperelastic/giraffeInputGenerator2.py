@@ -11,32 +11,44 @@ L = 9.09090909090909
 dx = 4.54545454545455   #spacing
 nyarns = L/dx
 
+######################################## M1- INPUT OF F AND X ############################################
+# The deformation gradient (F) and nodal coordinates (x) could be taken as a input from hyperelastic code
+# The F is used to calculate strain which then calulates alpha values 
+
 # # Get the nodal coordinates of the ends of the beams
-# X = nodedata
+# X = nodedata                     
 
-# # Get the strain from the deformation gradient
-# strain = F - np.eye(2)
+# Deformation gradient
+F = np.array([[1.2, 0.2],
+       		[0.2, 1.2]])            # Assumed
 
-# # Get alpha values from strain tensor
-# alpha1 = strain[0,0]
-# alpha2 = strain[0,1]
-# alpha3 = strain[1,0]
-# alpha4 = strain[1,1]
+# Get the strain from the deformation gradient
+strain = F - np.eye(2)
 
-#strain
-alpha1 = 0.2
-alpha2 = 0.2
-alpha3 = 0.2
-alpha4 = 0.2
+# Get alpha values from strain tensor
+alpha1 = strain[0,0]
+alpha2 = strain[0,1]
+alpha3 = strain[1,0]
+alpha4 = strain[1,1]
 
-E_xx = alpha1
-E_yy = alpha4
-Gamma_xy = alpha2 + alpha3
 
-# x_updated = np.array([-L/2,-L/2,L/2,L/2,-dx/2,dx/2,-dx/2,dx/2])
-# y_updated = np.array([-dx/2,dx/2,-dx/2,dx/2,-L/2,-L/2,L/2,L/2])
+######################################## M2- INPUT OF ALPHA ############################################
+# The following approach is based on excel sheet fomrulae
+# It directly takes input of strain instead of deformation gradient
+# It calculates nodal coordinates based on L and dx
 
-X = np.array([[-L/2,-dx/2],
+# #strain
+# alpha1 = 0.2
+# alpha2 = 0.2
+# alpha3 = 0.2
+# alpha4 = 0.2
+
+# E_xx = alpha1
+# E_yy = alpha4
+# Gamma_xy = alpha2 + alpha3
+
+# Nodal coordinates (x_updated and y_updated)
+X = np.array([[-L/2,-dx/2],                   # Formulae associated with excel for x_updated, y_updated
               [-L/2,dx/2],
               [L/2,-dx/2],
               [L/2,dx/2],
@@ -48,31 +60,25 @@ X = np.array([[-L/2,-dx/2],
 
 print(f'X = {X}')
 
+#######################################################################################################
+
 # Convert alpha into a matrix
 alpha = np.array([[alpha1, alpha2],[alpha3, alpha4]])
 print(f'alpha = {alpha}')
 
+
 # # Initialize disp and calculate the displacement
 # # of the ends of the beams
-# disp = np.zeros(((nx+ny)*2,6))                                            # disp = np.zeros((nx*ny,6))
-
 disp = np.zeros((8,2))
 disp[:,0] = alpha1*X[:,0] + alpha2*X[:,1]
 disp[:,1] = alpha3*X[:,0] + alpha4*X[:,1]
 
-# disp = np.array([[1,1],
-#                 [2,1],
-#                 [1,1],
-#                 [1,1],
-#                 [1,1],
-#                 [1,1],
-#                 [1,1],
-#                 [1,1]]                              
-#                 )
+
 print(f'disp = {disp}')
 
 
 # Generate the Giraffe input file
+
 # Open the file for writing
 with open('tex.inp', 'w') as file:
     # Write the top part of the Giraffe file
@@ -676,14 +682,14 @@ NodalDisplacement 7 NodeSet 11 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
 0	0	0	0	0	0	0
     """)
-    file.write(f'1 {disp[6,0]:.12f} {disp[6,1]:.12f} 0 0 0 0\n')
+    file.write(f'2 {disp[6,0]:.12f} {disp[6,1]:.12f} 0 0 0 0\n')
 
     file.write("""
 NodalDisplacement 8 NodeSet 12 CS 125 NTimes 2
 //Time UX UY UZ ROTX ROTY ROTZ
 0	0	0	0	0	0	0
     """)
-    file.write(f'1 {disp[7,0]:.12f} {disp[7,1]:.12f} 0 0 0 0\n\n')
+    file.write(f'2 {disp[7,0]:.12f} {disp[7,1]:.12f} 0 0 0 0\n\n')
 
     file.write("""
 
