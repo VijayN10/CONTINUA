@@ -20,7 +20,7 @@ nyarns = L/dx
 
 # Deformation gradient
 F = np.array([[1.2, 0.2],
-       		[0.2, 1.2]])            # Assumed
+       		[0.2, 1.2]])            # Assumption
 
 # Get the strain from the deformation gradient
 strain = F - np.eye(2)
