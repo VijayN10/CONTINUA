@@ -33,7 +33,7 @@ So, in this example, dloads = np.array([[1],[2],[3],[0]]), which corresponds to 
 #    Currently coded either for plane strain or general 3D.
 
 
-This is a Matlab function for computing the material stiffness tensor "C" for a hyperelastic material. The function takes in four inputs: "ndof" (the number of degrees of freedom), "ncoord" (the number of spatial dimensions, either 2 for plane strain or 3 for general 3D), "B" (the strain tensor), "J" (the determinant of the deformation gradient), and "materialprops" (a vector containing the material properties, specifically the shear modulus "mu1" and the bulk modulus "K1").
+This is a function for computing the material stiffness tensor "C" for a hyperelastic material. The function takes in four inputs: "ndof" (the number of degrees of freedom), "ncoord" (the number of spatial dimensions, either 2 for plane strain or 3 for general 3D), "B" (the strain tensor), "J" (the determinant of the deformation gradient), and "materialprops" (a vector containing the material properties, specifically the shear modulus "mu1" and the bulk modulus "K1").
 
 The function first initializes the Lame constants "mu1" and "K1" using the "materialprops" input. It also initializes the identity tensor "dl" which represents the direction cosines between the undeformed and deformed coordinate systems.
 
@@ -73,6 +73,8 @@ Where B_{kk} is the trace of the Biot strain tensor, and $\delta_{ij}$ is the Kr
 #   each element type
 
 
+An integration point is a point at which the stress and strain in a material element are evaluated. In finite element analysis, the deformation of the material is approximated by dividing it into a number of smaller elements. The stresses and strains are calculated at several points within each element, known as integration points. The values calculated at these points are then used to determine the overall response of the material element. The number of integration points used in a finite element analysis depends on the type of element, the dimension of the problem (1D, 2D, 3D), and the degree of accuracy required. The number of integration points can impact the accuracy of the analysis results and the computational time required.
+
 This function determines the number of integration points that should be used for a particular element, depending on the number of coordinates (1D, 2D, or 3D) and the number of nodes per element (e.g. 3, 6, 4, 8).
 
 In 1D, the number of integration points is equal to the number of nodes per element.
@@ -94,11 +96,105 @@ This code defines the positions of integration points for different element type
 #
 #   Defines integration weights w_i
 
+Integration weights are the coefficients used in numerical integration techniques for approximating the definite integral of a function. In the context of finite element analysis, the integration weights are used to calculate the element stiffness matrix and element force vector by integrating the element shape functions over the element domain. The choice of the integration weights depends on the type of element, the number of nodes and the number of integration points. The integration weights are usually determined based on the Gaussian quadrature rule, which is a well-known numerical integration method that provides an exact solution for polynomials up to a certain degree.This function calculates the integration weights for different types of elements in 1D and 2D based on the number of coordinates, number of element nodes, number of integration points, and element identifier. The integration weights are stored in the list "w".
 
 
+#================= SHAPE FUNCTIONS ==================================
+#
+#        Calculates shape functions for various element types
+
+This code calculates the shape functions for different element types in 1D or 2D. The shape functions are used to map the integration points in a local coordinate system to the global coordinate system in finite element analysis. The code is based on the element type identified by "nelnodes" and "ncoord", where "nelnodes" is the number of nodes in the element and "ncoord" is the number of dimensions in the problem (1D or 2D). The shape functions are stored in the N array. For example, if the element is a 2D triangular element with 3 nodes, the shape functions are calculated using the coordinate xi[0][0]. The resulting values of N are the shape functions.
+
+The shape functions (N) are mathematical functions that define the behavior of an element in terms of its nodal values. They are used to interpolate the nodal values to a certain point within the element. They are used in the calculation of element stiffness and element force matrices in finite element analysis. Integration weights, on the other hand, are numerical values used in numerical integration. They represent the weight assigned to each integration point in numerical integration, where the integrand is integrated over the element. They are used to approximate the exact integral by a summation of weighted values at a finite number of points within the element. The integration weights are used in the calculation of element stiffness and force matrices to take into account the effect of loads and boundary conditions over the entire element.
 
 
+#
+#================= SHAPE FUNCTION DERIVATIVES ======================
+#
 
+
+The above code is a Python function that calculates the derivatives of shape functions for different element types in two-dimensional finite element analysis. It takes four inputs:
+
+nelnodes: Number of nodes in the element
+ncoord: Number of dimensions or coordinates in the problem
+elident: Element identifier
+xi: Shape function parameter(s)
+Based on the values of nelnodes and ncoord, the function calculates the derivatives of shape functions for triangular and rectangular elements with 3 or 6 nodes and returns the result in the form of a two-dimensional array dNdxi. The derivatives are used in the calculation of the Jacobian matrix in the finite element method.
+
+
+#
+#================= ELEMENT RESIDUAL VECTOR ================================
+#
+
+
+#  Assemble the element residual force
+#
+#    Arguments:
+#
+#      ncoord             No. coordinates (2 or 3 for 2D or 3D problem)
+#      ndof               No. degrees of freedom per node (often ndof = ncoord)
+#      nelnodes           No. nodes on the element
+#      elident            Element identifier (not used here - for future enhancements!)
+#      coords[i,a]        ith coord of ath node
+#      materialprops      Material properties passed on to constitutive procedures
+#      displacement[i,a]  ith displacement component at ath node
+#
+#   Local variables
+#      npoints            No. integration points
+#      xi[i,inpt]         ith local coord of integration point no. intpt
+#      w[intpt]           weight for integration point no. intpt
+#      N[a]               Shape function associated with ath node on element
+#      dNdxi[a,i]         Derivative of ath shape function wrt ith local coord
+#      dNdx[a,i]          Derivative of ath shape function wrt ith global coord
+#      dxdxi[i,j]         Derivative of ith global coord wrt jth local coord
+#      dxidx[i,j]         Derivative of ith local coord wrt jth global coord
+#      det                Determinant of jacobian
+#      strain[i,j]        strain_ij components
+#      stress[i,j]        stress_ij components
+#      r[row]             Residual vector
+
+This is a function to calculate the element residual vector for a finite element analysis in either 2D or 3D. The function takes in several inputs, including the number of coordinates (ncoord), number of degrees of freedom (ndof), number of element nodes (nelnodes), element identifier (elident), coordinate data (coord), material properties (materialprops), and displacement data (displacement). The function computes the number of integration points, sets up integration points and weights, and then loops over the integration points to calculate various intermediate quantities such as the shape functions, the deformation gradient, and the stress/strain tensors. The final output of the function is the element residual vector (r).
+
+
+#
+#================= ELEMENT STIFFNESS MATRIX ================================
+#
+
+#  Assemble the element stiffness
+#
+#    Arguments;
+#
+#      ncoord             No. coordinates (2 or 3 for 2D or 3D problem)
+#      ndof               No. degrees of freedom per node (often ndof = ncoord)
+#      nelnodes           No. nodes on the element
+#      elident            Element identifier (not used here - for future enhancements!)
+#      coords(i,a)        ith coord of ath node
+#      materialprops      Material properties passed on:constitutive procedures
+#      displacement(i,a)  ith displacement component at ath node
+#
+#   Local variables
+#      npoints            No. integration points
+#      xi(i,inpt)         ith local coord of integration point no. intpt
+#      w(intpt)           weight for integration point no. intpt
+#      N(a)               Shape function associated with ath node on element
+#      dNdxi(a,i)         Derivative of ath shape function wrt ith local coord
+#      dNdx(a,i)          Derivative of ath shape function wrt ith global coord
+#      dxdxi(i,j)         Derivative of ith global coord wrt jth local coord
+#      dxidx(i,j)         Derivative of ith local coord wrt jth global coord
+#      det                Determinant of jacobian
+#      strain(i,j)        strain_ij components
+#      dsde(i,j,k,l)      Derivative of stress_ij with respect:strain_kl
+#      kel(row,col)       Rows && cols of element stiffness
+
+
+This code is a function that computes the element stiffness matrix for a finite element analysis problem. It takes 7 arguments as input: the number of coordinates (2 for a 2D problem and 3 for a 3D problem), the number of degrees of freedom per node, the number of nodes on the element, the element identifier, the node coordinates, material properties, and node displacements. The function uses these inputs to perform a numerical integration to compute the element stiffness matrix by looping over the integration points and computing the shape functions, their derivatives, the deformation gradient, the stress, and the derivative of the stress with respect to the strain. The output of the function is the element stiffness matrix.
+
+
+elstif (element stiffness) and elresid (element residual) are two separate functions in the code. The purpose of elstif is to calculate the stiffness matrix of an element, while the purpose of elresid is to calculate the residual vector of an element.
+
+The stiffness matrix of an element represents the second derivatives of the element's potential energy with respect to its degrees of freedom (displacements), and it is used in the finite element method to relate nodal loads to nodal displacements. The residual vector of an element is the vector of internal and external forces acting on an element, and it is used to determine the overall forces acting on the system.
+
+In summary, the elstif function computes the contribution of an element to the global stiffness matrix of the system, while the elresid function computes the contribution of an element to the global residual vector of the system.
 
 
 
