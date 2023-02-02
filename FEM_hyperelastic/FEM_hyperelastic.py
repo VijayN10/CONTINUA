@@ -5,6 +5,37 @@ import math
 
 # INPUT
 
+#          Example 2D and 3D hyperelastic FEM code
+#
+#        Variables read from input file;
+#        nprops              No. material parameters
+#        materialprops(i)    List of material parameters
+#        ncoord              No. spatial coords (2 for 2D, 3 for 3D)
+#        ndof                No. degrees of freedom per node (2 for 2D, 3 for 3D)
+#                            (here ndof=ncoord, but the program allows them to be different
+#                            to allow extension to plate & beam elements with C^1 continuity)
+#        nnode               No. nodes
+#        coords(i,j)         ith coord of jth node, for i=1..ncoord; j=1..nnode
+#        nelem               No. elements
+#        maxnodes            Max no. nodes on any one element (used for array dimensioning)
+#        nelnodes(i)         No. nodes on the ith element
+#        elident(i)          An integer identifier for the ith element.  Not used
+#                            in this code but could be used to switch on reduced integration,
+#                            etc.
+#        connect(i,j)        List of nodes on the jth element
+#        nfix                Total no. prescribed displacements
+#        fixnodes(i,j)       List of prescribed displacements at nodes
+#                            fixnodes(1,j) Node number
+#                            fixnodes(2,j) Displacement component number (1, 2 or 3)
+#                            fixnodes(3,j) Value of the displacement
+#        ndload              Total no. element faces subjected to tractions
+#        dloads(i,j)         List of element tractions
+#                            dloads(1,j) Element number
+#                            dloads(2,j) face number
+#                            dloads(3,j), dloads(4,j), dloads(5,j) Components of traction
+#                            (assumed uniform)
+
+
 # Total no. material parameters and list of parameters
 
 nprops = 2
@@ -120,7 +151,6 @@ dloads = np.array([[1],[2],[3],[0]])      # dloads = np.array([[1],[2],[3],[0]])
 #    Computes material stiffness tensor C_{ijkl} 
 #    Currently coded either for plane strain or general 3D.
 
-
 def materialstiffness(ndof, ncoord, B, J, materialprops):
     mu1 = materialprops[0]
     K1 = materialprops[1]
@@ -145,7 +175,6 @@ def materialstiffness(ndof, ncoord, B, J, materialprops):
 #
 #   Computes stress sigma_{ij} given B_{ij}
 
-
 def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
   stress = np.zeros((ndof,ncoord))
   dl = [[1,0,0],[0,1,0],[0,0,1]]
@@ -167,7 +196,6 @@ def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
 #
 #   Defines the number of integration points:be used for
 #   each element type
-
 
 def numberofintegrationpoints(ncoord, nelnodes, elident):
     if (ncoord == 1):
@@ -344,10 +372,11 @@ def integrationweights(ncoord, nelnodes, npoints, elident):
 
     return w
 
-
 ######################################################################################################################################################
 
-
+#================= SHAPE FUNCTIONS ==================================
+#
+#        Calculates shape functions for various element types
 
 def shapefunctions(nelnodes, ncoord, elident, xi):
     
@@ -402,9 +431,19 @@ def shapefunctions(nelnodes, ncoord, elident, xi):
 
     return N
 
+######################################################################################################################################################
+
+#
+#================= SHAPE FUNCTION DERIVATIVES ======================
+#
 
 def shapefunctionderivs(nelnodes,ncoord,elident,xi):
+
     dNdxi = np.zeros((nelnodes,ncoord))
+
+    #
+    # 1D elements
+    #
     if (ncoord == 1):
         if (nelnodes==2):
             dNdxi[0,0] = 0.5
@@ -413,7 +452,13 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
             dNdxi[0,0] = -0.5+xi[0][0]
             dNdxi[1,0] = 0.5+xi[0][0]
             dNdxi[2,0] = -2.*xi[0][0]
+
+    #
+    # 2D elements
+    #
     elif (ncoord == 2):
+
+        # Triangular element
         if ( nelnodes == 3 ):
             dNdxi[0,0] = 1.
             dNdxi[1,1] = 1.
@@ -431,6 +476,8 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
             dNdxi[4,1] = -4.*xi[0][0]
             dNdxi[5,0] = 4.*xi3 - 4.*xi[0][0]
             dNdxi[5,1] = 4.*xi3 - 4.*xi[1][0]
+
+        # Rectangular element
         elif ( nelnodes == 4 ):
             dNdxi[0,0] = -0.25*(1.-xi[1][0])
             dNdxi[0,1] = -0.25*(1.-xi[0][0])
@@ -440,9 +487,43 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
             dNdxi[2,1] = 0.25*(1.+xi[0][0])
             dNdxi[3,0] = -0.25*(1.+xi[1][0])
             dNdxi[3,1] = 0.25*(1.-xi[0][0])
+
+        # nelnodes == 8 CONDITION NEED TO ADD
     return dNdxi
 
+######################################################################################################################################################
+#
+#================= ELEMENT RESIDUAL VECTOR ================================
+#
+
 def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
+   
+#  Assemble the element residual force
+#
+#    Arguments:
+#
+#      ncoord             No. coordinates (2 or 3 for 2D or 3D problem)
+#      ndof               No. degrees of freedom per node (often ndof = ncoord)
+#      nelnodes           No. nodes on the element
+#      elident            Element identifier (not used here - for future enhancements!)
+#      coords[i,a]        ith coord of ath node
+#      materialprops      Material properties passed on to constitutive procedures
+#      displacement[i,a]  ith displacement component at ath node
+#
+#   Local variables
+#      npoints            No. integration points
+#      xi[i,inpt]         ith local coord of integration point no. intpt
+#      w[intpt]           weight for integration point no. intpt
+#      N[a]               Shape function associated with ath node on element
+#      dNdxi[a,i]         Derivative of ath shape function wrt ith local coord
+#      dNdx[a,i]          Derivative of ath shape function wrt ith global coord
+#      dxdxi[i,j]         Derivative of ith global coord wrt jth local coord
+#      dxidx[i,j]         Derivative of ith local coord wrt jth global coord
+#      det                Determinant of jacobian
+#      strain[i,j]        strain_ij components
+#      stress[i,j]        stress_ij components
+#      r[row]             Residual vector
+   
     npoints = numberofintegrationpoints(ncoord, nelnodes, elident)
     dxdxi = np.zeros((ncoord, ncoord))
     dxidx = np.zeros((ncoord, ncoord))
@@ -452,14 +533,22 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
     dNdx = np.zeros((nelnodes, ncoord))
     F = np.zeros((ncoord,ncoord))
 
+# Set up integration points and weights
+    
     xilist = integrationpoints(ncoord, nelnodes, npoints, elident)
     w = integrationweights(ncoord, nelnodes, npoints, elident)
 
+    # Loop over the integration points
     for intpt in range(npoints):
+
+        # Compute shape functions and derivatives wrt local coords
+
         for i in range(ncoord):
             xi[i] = xilist[i][intpt]
         N = shapefunctions(nelnodes, ncoord, elident, xi)
         dNdxi = shapefunctionderivs(nelnodes, ncoord, elident, xi)
+
+        # Compute the jacobian matrix and its determinant
 
         for i in range(ncoord):
             for j in range(ncoord):
@@ -469,11 +558,15 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
         dxidx = np.linalg.inv(dxdxi)
         dt = np.linalg.det(dxdxi)
 
+        # Convert shape function derivatives to derivatives wrt global coords
+
         for a in range(nelnodes):
             for i in range(ncoord):
                 dNdx[a][i] = 0
                 for j in range(ncoord):
                     dNdx[a][i] += dNdxi[a][j] * dxidx[j][i]
+
+        # Compute the deformation gradients by differentiating displacements
 
         for i in range(ncoord):
             for j in range(ncoord):
@@ -482,8 +575,13 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
                     F[i][i] = 1
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
+        
+        # Compute Bbar and J
+
         J = np.linalg.det(F)
         B = np.dot(F, np.transpose(F))
+
+        # Convert shape function derivatives to derivatives wrt spatial coords
 
         Finv = np.linalg.inv(F)
         for a in range(nelnodes):
@@ -491,7 +589,12 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
                 dNdxs[a][i] = 0
                 for j in range(ncoord):
                     dNdxs[a][i] += dNdx[a][j] * Finv[j][i]
+        
+        # Compute the stress
+
         stress = Kirchhoffstress(ndof,ncoord,B,J,materialprops)
+
+        # Compute the element residual
 
         for a in range(nelnodes):
             for i in range(ncoord):
@@ -499,27 +602,64 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
                     rel[row + a * ndof] += stress[row][i] * dNdxs[a][i] * w[intpt] * dt
     return rel
        
+######################################################################################################################################################
+#
+#================= ELEMENT STIFFNESS MATRIX ================================
+#
 
 def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
     
+#  Assemble the element stiffness
+#
+#    Arguments;
+#
+#      ncoord             No. coordinates (2 or 3 for 2D or 3D problem)
+#      ndof               No. degrees of freedom per node (often ndof = ncoord)
+#      nelnodes           No. nodes on the element
+#      elident            Element identifier (not used here - for future enhancements!)
+#      coords(i,a)        ith coord of ath node
+#      materialprops      Material properties passed on:constitutive procedures
+#      displacement(i,a)  ith displacement component at ath node
+#
+#   Local variables
+#      npoints            No. integration points
+#      xi(i,inpt)         ith local coord of integration point no. intpt
+#      w(intpt)           weight for integration point no. intpt
+#      N(a)               Shape function associated with ath node on element
+#      dNdxi(a,i)         Derivative of ath shape function wrt ith local coord
+#      dNdx(a,i)          Derivative of ath shape function wrt ith global coord
+#      dxdxi(i,j)         Derivative of ith global coord wrt jth local coord
+#      dxidx(i,j)         Derivative of ith local coord wrt jth global coord
+#      det                Determinant of jacobian
+#      strain(i,j)        strain_ij components
+#      dsde(i,j,k,l)      Derivative of stress_ij with respect:strain_kl
+#      kel(row,col)       Rows && cols of element stiffness
+
     npoints = numberofintegrationpoints(ncoord, nelnodes, elident)
     dNdx = np.zeros((nelnodes, ncoord))
     dxdxi = np.zeros((ncoord, ncoord))
     strain = np.zeros((ndof, ncoord))
     kel = np.zeros((ndof*nelnodes, ndof*nelnodes))
 
+    # Set up integration points && weights 
+
     xilist = integrationpoints(ncoord,nelnodes,npoints,elident)
     w = integrationweights(ncoord,nelnodes,npoints,elident)
 
+    # Loop over the integration points
+
     for intpt in range(npoints):
+
+        # Compute shape functions && derivatives wrt local coords
 
         xi = np.zeros((ncoord,1))
         for i in range(0,ncoord):
           xi[i] = xilist[i,intpt] 
 
-        # xi = xilist[:, intpt]
         N = shapefunctions(nelnodes, ncoord, elident, xi)
         dNdxi = shapefunctionderivs(nelnodes, ncoord, elident, xi)
+
+        # Compute the jacobian matrix && its determinant
 
         for i in range(ncoord):
             for j in range(ncoord):
@@ -530,11 +670,15 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
         dxidx = np.linalg.inv(dxdxi)
         dt = np.linalg.det(dxdxi)
 
+        # Convert shape function derivatives:derivatives wrt global coords
+        
         for a in range(nelnodes):
             for i in range(ncoord):
                 dNdx[a, i] = 0
                 for j in range(ncoord):
                     dNdx[a, i] += dNdxi[a, j] * dxidx[j, i]
+
+        # Compute the deformation gradients by differentiating displacements
 
         F = np.eye(ncoord)
         for i in range(ncoord):
@@ -542,8 +686,12 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
         
+        # Compute Bbar and J
+
         J = np.linalg.det(F)
         B = np.dot(F, F.T)
+
+        # Convert shape function derivatives to derivatives wrt spatial coords
 
         Finv = np.linalg.inv(F)
         dNdxs = np.zeros((nelnodes, ncoord))
@@ -552,9 +700,17 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 for j in range(ncoord):
                     dNdxs[a, i] += dNdx[a, j] * Finv[j, i]
 
+        # Compute the stress
+
         stress = Kirchhoffstress(ndof, ncoord, B, J, materialprops)
+
+        # Compute the material tangent stiffness (d stress/d strain)
+        # ds/de is just C_ijkl for linear elasticity - this notation is used
+        # to allow extension to nonlinear problems
+
         dsde = materialstiffness(ndof, ncoord, B, J, materialprops)
         
+        # Compute the element stiffness
 
         for a in range(nelnodes):
             for i in range(ndof):
@@ -569,6 +725,13 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
       
     return kel
 
+######################################################################################################################################################
+
+#====================== No. nodes on element faces ================
+#
+#   This procedure returns the number of nodes on each element face
+#   for various element types.  This info is needed for computing
+#   the surface integrals associated with the element traction vector
 
 def nfacenodes(ncoord,nelnodes):
     if (ncoord == 2): 
@@ -587,7 +750,14 @@ def nfacenodes(ncoord,nelnodes):
             n = 8
     return n
 
+######################################################################################################################################################
 
+#======================= Lists of nodes on element faces =============
+#
+#    This procedure returns the list of nodes on an element face
+#    The nodes are ordered so that the element face forms either
+#    a 1D line element or a 2D surface element for 2D or 3D problems
+#
 def facenodes(ncoord,nelnodes,elident,face):
     i3 = [2,3,1]
     i4 = [2,3,4,1]
@@ -610,6 +780,11 @@ def facenodes(ncoord,nelnodes,elident,face):
             fnlist[2] = face+4
     return fnlist
 
+######################################################################################################################################################
+
+#
+#====================== ELEMENT DISTRIBUTED LOAD VECTOR ==============
+#
 
 def eldload(ncoord, ndof, nfacenodes, elident, coords, traction):
     npoints = numberofintegrationpoints(ncoord-1, nfacenodes, elident)
@@ -625,7 +800,9 @@ def eldload(ncoord, ndof, nfacenodes, elident, coords, traction):
             xi[i] = xilist[i][intpt]
         N = shapefunctions(nfacenodes, ncoord-1, elident, xi)
         dNdxi = shapefunctionderivs(nfacenodes, ncoord-1, elident, xi)
-   
+
+        # Compute the jacobian matrix && its determinant
+
         for i in range(ncoord):
             for j in range(ncoord-1):
                 dxdxi[i][j] = 0
@@ -643,18 +820,26 @@ def eldload(ncoord, ndof, nfacenodes, elident, coords, traction):
                 r[row] += N[a] * traction[i] * w[intpt] * dt
     return r
 
+######################################################################################################################################################
+#
+#====================== Assemble the global residual vector =================
+#
 
 def globalresidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
+    
     # Assemble the global stiffness matrix
-    resid = [0] * (ndof * nnode)
 
-    lmncoord = [[0 for _ in range(maxnodes)] for _ in range(ncoord)]
-    lmndof = [[0 for _ in range(maxnodes)] for _ in range(ndof)]
-    rel = [[0 for _ in range(ndof * maxnodes)] for _ in range(ndof * maxnodes)]
+    resid = np.zeros((ndof*nnode,1))
+    lmncoord = np.zeros((ncoord,maxnodes))
+    lmndof = np.zeros((ndof,maxnodes))
+    rel = np.zeros((ndof*maxnodes,ndof*maxnodes))
 
     # Loop over all the elements
+
     for lmn in range(1, nelem + 1):
+
         # Extract coords of nodes, DOF for the current element
+
         for a in range(1, nelnodes + 1):
             for i in range(1, ncoord + 1):
                 lmncoord[i - 1][a - 1] = coords[i - 1][connect[a - 1][lmn - 1] - 1]
@@ -666,20 +851,33 @@ def globalresidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnod
         rel = elresid(ncoord, ndof, n, ident, lmncoord, materialprops, lmndof)
 
         # Add the current element residual to the global residual
+
         for a in range(1, nelnodes + 1):
             for i in range(1, ndof + 1):
                 rw = ndof * (connect[a - 1][lmn - 1] - 1) + i - 1
                 resid[rw] += rel[ndof * (a - 1) + i - 1]
     return resid
 
+######################################################################################################################################################
+
+#
+#====================== Assemble the global stiffness matrix =================
+#
+
 def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
+    
     # Assemble the global stiffness matrix
+
     Stif = np.zeros((ndof*nnode,ndof*nnode))
     lmncoord = np.zeros((ncoord,maxnodes))
     lmndof = np.zeros((ndof,maxnodes))
+    
     # Loop over all the elements
+
     for lmn in range(nelem):
+        
         # Extract coords of nodes, DOF for the current element
+
         for a in range(nelnodes):
             for i in range(ncoord):
                 lmncoord[i][a] = coords[i][connect[a][lmn]-1]
@@ -688,7 +886,9 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
         n = nelnodes
         ident = elident[lmn]
         kel = elstif(ncoord, ndof, n, ident, lmncoord, materialprops, lmndof)
+        
         # Add the current element stiffness:the global stiffness
+
         for a in range(nelnodes):
             for i in range(ndof):
                 for b in range(nelnodes):
@@ -698,11 +898,20 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
                         Stif[rw][cl] += kel[ndof*(a-1)+i][ndof*(b-1)+k]
     return Stif
 
+######################################################################################################################################################
+
+#
+#===================== Assemble the global traction vector =============
+#
+
 def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, connect, dloads, dofs):
     r = np.zeros((ndof*nnodes, 1))
     traction = np.zeros((ndof, 1))
 
     for load in range(ndload):
+
+        # Extract the coords of the nodes on the appropriate element face
+        
         lmn = dloads[0, load]
         face = dloads[1, load]
         n = nelnodes
@@ -715,15 +924,22 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
                 lmncoord[i, a] = coords[i, connect[int(nodelist[a]-1), int(dloads[0, load]-1)]-1]
             # for i in range(ndof):
             #     lmndof[i, a] = dofs[ndof*(connect[int(nodelist[a]), int(dloads[0, load])]-1)+i]
+        
+        # Compute the element load vector
+
         for i in range(ndof):
             traction[i] = dloads[i+2, load]
         rel = eldload(ncoord, ndof, nfnodes, ident, lmncoord, traction)
+
+        # Assemble the element load vector into global vector
+        
         for a in range(nfnodes):
             for i in range(ndof):
                 rw = (connect[int(nodelist[a])-2, int(dloads[0, load])-1])*ndof+i
                 r[rw] = r[rw] + rel[(a-1)*ndof+i]
     return r
 
+######################################################################################################################################################
 
 
 # def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads, dofs):
