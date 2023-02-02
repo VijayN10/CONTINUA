@@ -575,7 +575,8 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
                     F[i][i] = 1
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
-        
+        print(f'F = {F}')
+
         # Compute Bbar and J
 
         J = np.linalg.det(F)

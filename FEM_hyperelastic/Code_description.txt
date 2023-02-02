@@ -1,3 +1,32 @@
+The inputs in this code are parameters and data required to perform a finite element analysis (FEA) using hyperelastic material model.
+
+nprops: Total number of material parameters. In this case, it's 2.
+materialprops: List of material parameters, in this case, [1, 10]. The first parameter is referred to as mu1, and the second parameter is referred to as K1.
+ncoord: Total number of spatial coordinates. In this case, it's 2, implying a 2D analysis.
+ndof: Total number of degrees of freedom per node. In this case, it's 2, implying a 2D analysis.
+nnode: Total number of nodes. In this case, it's 4.
+coords: List of the nodal coordinates, with 2 rows, the first row containing the x-coordinates and the second row containing the y-coordinates.
+nelem: Total number of elements. In this case, it's 1.
+maxnodes: Maximum number of nodes in any one element. In this case, it's 4.
+nelnodes: List of the number of nodes for each element. In this case, it's [4].
+elident: List of integer identifiers for each element. Not used in this code.
+connect: List of the nodes for each element.
+nfix: Total number of nodes with prescribed displacements. In this case, it's 4.
+fixnodes: List of the prescribed displacements at nodes. The first row contains the node numbers, the second row contains the displacement component number, and the third row contains the value of the displacement.
+ndload: Total number of element faces subjected to tractions. In this case, it's 1.
+dloads: List of the element tractions. The first row contains the element number, the second row contains the face number, and the third and fourth rows contain the x- and y-components of traction, respectively.
+
+
+dloads is a 2D numpy array that contains information about the number of element faces subjected to tractions and the tractions themselves.
+The first dimension of dloads is the number of element faces subjected to tractions. In this case, ndload = 1, meaning there is only 1 element face subjected to tractions.
+The second dimension of dloads contains the details of each element face subjected to traction. It is a 3-element array with the following format:
+dloads[0,j] - Element number
+dloads[1,j] - face number
+dloads[2:4,j] - Components of traction (assumed to be uniform)
+So, in this example, dloads = np.array([[1],[2],[3],[0]]), which corresponds to 1 element face subjected to tractions on face 2 with components (3, 0).
+
+
+
 #================= Material Stiffness ==================================
 #
 #    Computes material stiffness tensor C_{ijkl} 
