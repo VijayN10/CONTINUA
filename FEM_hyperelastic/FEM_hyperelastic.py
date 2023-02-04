@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 import math
 import subprocess
+import time
 import os
 
 
@@ -105,9 +106,9 @@ def giraffeInputGenerator(rvetype, name):
     rr = 0
 
     # Create new folder with name of .inp file
-    inp = name + '_' + str(rr)                       # inp = tex0
-    folder = path + inp                              # folder = E:/Softwares/01/Giraffe/tex0
-    os.makedirs(folder, exist_ok=True)               # Creates tex0 folder
+    inp = name + '_' + str(rr)                       # inp = tex_0
+    folder = path + inp                              # folder = E:/Softwares/01/Giraffe/tex_0
+    os.makedirs(folder, exist_ok=True)               # Creates tex_0 folder
 
     # Take inputs from text file and assign following variables 
     with open("data/rve"+ str(rr)  +".txt", "r") as file:
@@ -166,7 +167,7 @@ def giraffeInputGenerator(rvetype, name):
 
     # Open the file for writing
 
-    filepath = folder + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex0/tex0.inp
+    filepath = folder + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex_0/tex_0.inp
     with open(filepath, 'w') as file:
         
     # Top part of Giraffe input file
@@ -264,28 +265,57 @@ def giraffeInputGenerator(rvetype, name):
 def runGiraffe(path, folder, inp):
 
     # path : E:/Softwares/01/Giraffe/
-    # folder : E:/Softwares/01/Giraffe/tex0
-    # inp  : tex0
+    # folder : E:/Softwares/01/Giraffe/tex_0
+    # inp  : tex_0
 
     # path of Giraffe.exe
     giraffe = path + "Giraffe.exe"
+    
 
-    # # To open .exe file
-    # p = subprocess.Popen([giraffe], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen([giraffe], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+    # p = subprocess.Popen([r"E:\Softwares\01\Giraffe\Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+    input_file_name = inp                                                            # input("Enter the name of the input file: ")
+    # p.communicate(input=input_file_name.encode())
+    
+    output, error = p.communicate(input=input_file_name.encode())
+    if error:
+        print("Error: ", error.decode())
+    else:
+        print("Output: ", output.decode())
 
-    # # To type name of input file (eg tex0) in Giraffe terminal and enter
-    # out, err = p.communicate(input=inp.encode() + b"\n")        
-    # print(out.decode())
+        
+    # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
+    report = folder + '/simulation_report.txt'
 
-    # try:
-    #     subprocess.run([giraffe], timeout=60)
-    # except subprocess.TimeoutExpired:
-    #     print("The .exe file took too long to run.")
+    while True:
+        with open(report, "r") as f:
+            lines = f.readlines()
+            if lines:
+                last_line = lines[-1]
+                if "Total solution time:" in last_line:
+                    print("Simulation completed.\n", last_line)
+                    break
+                else:
+                    print(last_line, end="")
+            time.sleep(1)   
+    
 
-    opFilePath = folder + '/monitors/monitor_nodeset_1.txt'
+        opFilePath = folder + '/monitors/monitor_nodeset_1.txt'
 
     return opFilePath
 
+
+# To run file from here. Error - SOftware not running 
+
+# def runGiraffe_run(folder):
+    
+#     # Run the Giraffe_run.py script using subprocess
+#     subprocess.run(["python", "E:/Softwares/01/Giraffe/Giraffe_run.py"])
+    
+#     # Get the opFilePath
+#     opFilePath = folder + '/monitors/monitor_nodeset_1.txt'
+
+#     return opFilePath
 
 ######################################################################################################################################################
 
@@ -319,8 +349,12 @@ def checkGiraffeOutputs(opFilePath):
 # Addeing file path of generated giraffe input file
 folder, inp = giraffeInputGenerator(rvetype, name)
 
-# Run giraffe
-opFilePath = runGiraffe(path, folder, inp)
+# # Run giraffe
+# opFilePath = runGiraffe(path, folder, inp)
+opFilePath = folder + '/monitors/monitor_nodeset_1.txt' 
+
+# # To run python script
+# opFilePath = runGiraffe_run(folder)
 
 # Check if the output file is empty using `checkGiraffeOutputs` function
 flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
