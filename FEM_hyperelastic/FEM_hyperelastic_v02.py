@@ -912,7 +912,6 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
             for j in range(ncoord):
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
-        print(F)
                     
         # for i in range(ncoord):
         #     for j in range(ncoord):
@@ -951,7 +950,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
 
         elif model == 2:
             
-            # Delete below codes after checking all functions and callings. Use the new one (whixh is outside the loop currently)
+            # REPLACE below codes after checking all functions and callings. Use the new one (whixh is outside the loop currently)
             
             # Call giraffe function 
 
@@ -1433,13 +1432,13 @@ for step in range(1, nsteps+1):
    
         K = globalstiffness(ncoord,ndof,nnode,coords, 
                 nelem,maxnodes,elident,nelnodes,connect,materialprops,w)
-        F = globaltraction(ncoord,ndof,nnode,ndload,coords, 
+        T = globaltraction(ncoord,ndof,nnode,ndload,coords, 
                     nelnodes,elident,connect,dloads,w)
         R = globalresidual(ncoord,ndof,nnode,coords, 
                 nelem,maxnodes,elident,nelnodes, 
                 connect,materialprops,w)
 
-        b = loadfactor*F - R
+        b = loadfactor*T - R
          
         # Fix constrained nodes.
         for n in range(nfix):

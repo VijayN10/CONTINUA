@@ -1391,13 +1391,13 @@ for step in range(1, nsteps+1):
    
         K = globalstiffness(ncoord,ndof,nnode,coords, 
                 nelem,maxnodes,elident,nelnodes,connect,materialprops,w)
-        F = globaltraction(ncoord,ndof,nnode,ndload,coords, 
+        T = globaltraction(ncoord,ndof,nnode,ndload,coords, 
                     nelnodes,elident,connect,dloads,w)
         R = globalresidual(ncoord,ndof,nnode,coords, 
                 nelem,maxnodes,elident,nelnodes, 
                 connect,materialprops,w)
 
-        b = loadfactor*F - R
+        b = loadfactor*T - R
          
         # Fix constrained nodes.
         for n in range(nfix):
