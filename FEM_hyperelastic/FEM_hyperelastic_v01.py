@@ -262,60 +262,16 @@ def giraffeInputGenerator(rvetype, name):
 
 # Run giraffe
 
-def runGiraffe(path, folder, inp):
 
-    # path : E:/Softwares/01/Giraffe/
-    # folder : E:/Softwares/01/Giraffe/tex_0
-    # inp  : tex_0
+import sys
+sys.path.insert(0, 'E:/Softwares/01/Giraffe/')
 
-    # path of Giraffe.exe
-    giraffe = path + "Giraffe.exe"
-    
+import Giraffe_run_v01
 
-    p = subprocess.Popen([giraffe], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-    # p = subprocess.Popen([r"E:\Softwares\01\Giraffe\Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-    input_file_name = inp                                                            # input("Enter the name of the input file: ")
-    # p.communicate(input=input_file_name.encode())
-    
-    output, error = p.communicate(input=input_file_name.encode())
-    if error:
-        print("Error: ", error.decode())
-    else:
-        print("Output: ", output.decode())
-
-        
-    # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
-    report = folder + '/simulation_report.txt'
-
-    while True:
-        with open(report, "r") as f:
-            lines = f.readlines()
-            if lines:
-                last_line = lines[-1]
-                if "Total solution time:" in last_line:
-                    print("Simulation completed.\n", last_line)
-                    break
-                else:
-                    print(last_line, end="")
-            time.sleep(1)   
-    
-
-        opFilePath = folder + '/monitors/monitor_nodeset_1.txt'
-
+def run_simulation(folder):
+    opFilePath = Giraffe_run_v01.main(folder)
     return opFilePath
 
-
-# To run file from here. Error - SOftware not running 
-
-# def runGiraffe_run(folder):
-    
-#     # Run the Giraffe_run.py script using subprocess
-#     subprocess.run(["python", "E:/Softwares/01/Giraffe/Giraffe_run.py"])
-    
-#     # Get the opFilePath
-#     opFilePath = folder + '/monitors/monitor_nodeset_1.txt'
-
-#     return opFilePath
 
 ######################################################################################################################################################
 
@@ -352,11 +308,7 @@ folder, inp = giraffeInputGenerator(rvetype, name)
 #%%
 
 # # Run giraffe
-# opFilePath = runGiraffe(path, folder, inp)
-opFilePath = folder + '/monitors/monitor_nodeset_1.txt' 
-
-# # To run python script
-# opFilePath = runGiraffe_run(folder)
+opFilePath = run_simulation(folder)
 
 # Check if the output file is empty using `checkGiraffeOutputs` function
 flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
@@ -367,8 +319,8 @@ counterGiraffe = 0
 # Keep looping while the output file is empty and counter is less than 10
 while flag_giraffe and counterGiraffe < 10:
 
-    # # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
-    # opFilePath = runGiraffe(path, folder, inp)
+    # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
+    opFilePath = runGiraffe(path, folder, inp)
 
     # Check the output file again
     flag_giraffe = checkGiraffeOutputs(opFilePath)
@@ -929,15 +881,6 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
             for j in range(ncoord):
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
-        print(F)
-                    
-        # for i in range(ncoord):
-        #     for j in range(ncoord):
-        #         F[i][j] = 0
-        #         if i == j:
-        #             F[i][i] = 1
-        #         for a in range(nelnodes):
-        #             F[i][j] += displacement[i][a] * dNdx[a][j]
         
         # Compute Bbar and J
 
