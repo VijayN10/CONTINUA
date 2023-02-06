@@ -950,7 +950,9 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
         
 
         elif model == 2:
-
+            
+            # Delete below codes after checking all functions and callings. Use the new one (whixh is outside the loop currently)
+            
             # Call giraffe function 
 
             # Addeing file path of generated giraffe input file
