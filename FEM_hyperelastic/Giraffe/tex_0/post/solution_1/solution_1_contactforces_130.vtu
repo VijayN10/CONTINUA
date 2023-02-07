@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<VTKFile type="UnstructuredGrid" version="1.0" byte_order="LittleEndian" header_type="UInt64">
+<!--INPUT: tex_0.inp - TIME = 0.0741299323-->
+	<UnstructuredGrid>
+		<Piece NumberOfPoints="2" NumberOfCells="2">
+			<Points>
+				<DataArray type="Float32" NumberOfComponents="3" format="binary">
+MjQAAAAAAAAUJShAgCooQL4YD7uAKihAFCUoQL4YDzs=
+				</DataArray>
+			</Points>
+			<Cells>
+				<DataArray type="Int32" Name="connectivity" format="binary">
+OAAAAAAAAAAAAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="types" format="binary">
+OAAAAAAAAAABAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="offsets" format="binary">
+OAAAAAAAAAABAAAAAgAAAA==
+				</DataArray>
+			</Cells>
+			<PointData Vectors = "ContactForces">
+				<DataArray Name = "Normal" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAACoj+dCqI/nwv0Nv0Soj+fCqI/nQv0Nv8Q=
+				</DataArray>
+				<DataArray Name = "Friction" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAIA=
+				</DataArray>
+			</PointData>
+		</Piece>
+		<Piece NumberOfPoints="2" NumberOfCells="2">
+			<Points>
+				<DataArray type="Float32" NumberOfComponents="3" format="binary">
+MjQAAAAAAABksNJAbxYpQAgYDzuqrdJA/BApQDQXD7s=
+				</DataArray>
+			</Points>
+			<Cells>
+				<DataArray type="Int32" Name="connectivity" format="binary">
+OAAAAAAAAAAAAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="types" format="binary">
+OAAAAAAAAAABAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="offsets" format="binary">
+OAAAAAAAAAABAAAAAgAAAA==
+				</DataArray>
+			</Cells>
+			<PointData Vectors = "ContactForces">
+				<DataArray Name = "Normal" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAACMtejClrXownwMv8SMtehClrXoQnwMv0Q=
+				</DataArray>
+				<DataArray Name = "Friction" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAAAAAAAAAAAAAAAAAIAAAACAAAAAgAAAAAA=
+				</DataArray>
+			</PointData>
+		</Piece>
+		<Piece NumberOfPoints="2" NumberOfCells="2">
+			<Points>
+				<DataArray type="Float32" NumberOfComponents="3" format="binary">
+MjQAAAAAAAD8EClAqq3SQDQXDztvFilAZLDSQAgYD7s=
+				</DataArray>
+			</Points>
+			<Cells>
+				<DataArray type="Int32" Name="connectivity" format="binary">
+OAAAAAAAAAAAAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="types" format="binary">
+OAAAAAAAAAABAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="offsets" format="binary">
+OAAAAAAAAAABAAAAAgAAAA==
+				</DataArray>
+			</Cells>
+			<PointData Vectors = "ContactForces">
+				<DataArray Name = "Normal" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAACWtehCjLXoQnwMv8SWtejCjLXownwMv0Q=
+				</DataArray>
+				<DataArray Name = "Friction" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAAAAAACAAAAAgAAAAIAAAAAAAAAAAAAAAAA=
+				</DataArray>
+			</PointData>
+		</Piece>
+		<Piece NumberOfPoints="2" NumberOfCells="2">
+			<Points>
+				<DataArray type="Float32" NumberOfComponents="3" format="binary">
+MjQAAAAAAABSJtNAnCPTQDIbD7ucI9NAUibTQDIbDzs=
+				</DataArray>
+			</Points>
+			<Cells>
+				<DataArray type="Int32" Name="connectivity" format="binary">
+OAAAAAAAAAAAAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="types" format="binary">
+OAAAAAAAAAABAAAAAQAAAA==
+				</DataArray>
+				<DataArray type="Int32" Name="offsets" format="binary">
+OAAAAAAAAAABAAAAAgAAAA==
+				</DataArray>
+			</Cells>
+			<PointData Vectors = "ContactForces">
+				<DataArray Name = "Normal" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAACBk+fCgZPnQkQRv0SBk+dCgZPnwkQRv8Q=
+				</DataArray>
+				<DataArray Name = "Friction" type = "Float32" NumberOfComponents= "3" format="binary">
+MjQAAAAAAAAAAACAAAAAgAAAAIAAAAAAAAAAAAAAAAA=
+				</DataArray>
+			</PointData>
+		</Piece>
+		<Piece NumberOfPoints="1" NumberOfCells="1">
+			<Points>
+				<DataArray type="Float32" NumberOfComponents="3" format="binary">
+MTIAAAAAAAAAAAAAAAAAAAAAAAA=
+				</DataArray>
+			</Points>
+			<Cells>
+				<DataArray type="Int32" Name="connectivity" format="binary">
+NAAAAAAAAAAAAAAA
+				</DataArray>
+				<DataArray type="Int32" Name="types" format="binary">
+NAAAAAAAAAABAAAA
+				</DataArray>
+				<DataArray type="Int32" Name="offsets" format="binary">
+NAAAAAAAAAABAAAA
+				</DataArray>
+			</Cells>
+			<PointData Vectors = "ContactForces">
+				<DataArray Name = "Normal" type = "Float32" NumberOfComponents= "3" format="binary">
+MTIAAAAAAAAAAAAAAAAAAAAAAAA=
+				</DataArray>
+				<DataArray Name = "Friction" type = "Float32" NumberOfComponents= "3" format="binary">
+MTIAAAAAAAAAAAAAAAAAAAAAAAA=
+				</DataArray>
+			</PointData>
+		</Piece>
+	</UnstructuredGrid>
+</VTKFile>

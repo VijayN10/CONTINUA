@@ -104,10 +104,10 @@ def giraffeInputGenerator(rvetype, name):
     # Create new folder with name of .inp file
     inp = name + '_' + str(rr)                       # inp = tex_0
     # folder = path + inp                              # folder = E:/Softwares/01/Giraffe/tex_0
-    os.makedirs(inp, exist_ok=True)               # Creates tex_0 folder
+    os.makedirs("Giraffe/" + inp, exist_ok=True)               # Creates tex_0 folder
 
     # Take inputs from text file and assign following variables 
-    with open("data/rve"+ str(rr)  +".txt", "r") as file:
+    with open("Giraffe/RVE_data/rve"+ str(rr)  +".txt", "r") as file:
         Lxx, Lyy, t, nx, ny = [float(x) for x in file.read().split()]
         nx = int(nx)
         ny = int(ny)
@@ -117,7 +117,7 @@ def giraffeInputGenerator(rvetype, name):
     X = np.zeros(((nx + ny) * 2, 3))
 
     # Read the nodedata text files from data folder
-    with open("data/nodedata" + str(rr)  + ".txt", "r") as file:
+    with open("Giraffe/RVE_data/nodedata" + str(rr)  + ".txt", "r") as file:
         for i, line in enumerate(file):
             X[i] = [float(x) for x in line.strip().split()]
     
@@ -142,7 +142,7 @@ def giraffeInputGenerator(rvetype, name):
     
     # Convert alpha into a matrix
     alpha = np.array([[alpha1, alpha2],[alpha3, alpha4]])
-    print(f'alpha = {alpha}')
+    # print(f'alpha = {alpha}')
 
 
     # Initialize disp and calculate the displacement
@@ -150,20 +150,20 @@ def giraffeInputGenerator(rvetype, name):
     disp = np.zeros(((nx + ny) * 2,2))
     disp[:,0] = alpha1*X[:,0] + alpha2*X[:,1]
     disp[:,1] = alpha3*X[:,0] + alpha4*X[:,1]
-    print(f'disp = {disp}')
+    # print(f'disp = {disp}')
 
     # Read the top portion from grfTop{i}.txt
-    with open("data/grfTop" + str(rr)  + ".txt", "r") as top_file:
+    with open("Giraffe/RVE_data/grfTop" + str(rr)  + ".txt", "r") as top_file:
         top = top_file.read()
 
     # Read the bottom portion from grfBottom{i}.txt
-    with open("data/grfBottom" + str(rr) + ".txt", "r") as bottom_file:
+    with open("Giraffe/RVE_data/grfBottom" + str(rr) + ".txt", "r") as bottom_file:
         bottom = bottom_file.read()
 
 
     # Open the file for writing
 
-    filepath = inp + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex_0/tex_0.inp
+    filepath = 'Giraffe/' + inp + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex_0/tex_0.inp
     with open(filepath, 'w') as file:
         
     # Top part of Giraffe input file
@@ -267,6 +267,10 @@ def runGiraffe(inp):
     # path of Giraffe.exe
     # giraffe = path + "Giraffe.exe"
     
+    cur_folder = os.path.dirname(os.getcwd())
+    print(cur_folder)
+   
+    os.chdir('Giraffe')
 
     p = subprocess.Popen(["Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
     # p = subprocess.Popen([r"E:\Softwares\01\Giraffe\Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
@@ -280,23 +284,23 @@ def runGiraffe(inp):
         print("Output: ", output.decode())
 
         
-    # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
-    report = inp + '/simulation_report.txt'
+    # # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
+    # report = 'Giraffe/' + inp + '/simulation_report.txt'
 
-    while True:
-        with open(report, "r") as f:
-            lines = f.readlines()
-            if lines:
-                last_line = lines[-1]
-                if "Total solution time:" in last_line:
-                    print("Simulation completed.\n", last_line)
-                    break
-                else:
-                    print(last_line, end="")
-            time.sleep(1)   
+    # while True:
+    #     with open(report, "r") as f:
+    #         lines = f.readlines()
+    #         if lines:
+    #             last_line = lines[-1]
+    #             if "Total solution time:" in last_line:
+    #                 print("Simulation completed.\n", last_line)
+    #                 break
+    #             else:
+    #                 print(last_line, end="")
+    #         time.sleep(1)   
     
 
-    opFilePath = inp + '/monitors/monitor_nodeset_1.txt'
+    opFilePath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_1.txt'
 
     return opFilePath
 
