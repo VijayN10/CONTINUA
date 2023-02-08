@@ -252,7 +252,7 @@ def giraffeInputGenerator(rvetype, name):
         file.write(bottom)
 
 
-    return inp
+    return inp, Lxx, Lyy, t
 
 ######################################################################################################################################################
 
@@ -267,9 +267,13 @@ def runGiraffe(inp):
     # path of Giraffe.exe
     # giraffe = path + "Giraffe.exe"
     
-    cur_folder = os.path.dirname(os.getcwd())
-    print(cur_folder)
+    # cur_folder = os.path.dirname(os.getcwd())
+    # print(cur_folder)
+    
+    cur_folder = os.getcwd()
+    # print(cur_folder)    
    
+    # Changing directory
     os.chdir('Giraffe')
 
     p = subprocess.Popen(["Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
@@ -283,7 +287,7 @@ def runGiraffe(inp):
     else:
         print("Output: ", output.decode())
 
-        
+
     # # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
     # report = 'Giraffe/' + inp + '/simulation_report.txt'
 
@@ -299,7 +303,9 @@ def runGiraffe(inp):
     #                 print(last_line, end="")
     #         time.sleep(1)   
     
-
+    # Going back to current directory or folder
+    os.chdir(cur_folder)
+    
     opFilePath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_1.txt'
 
     return opFilePath
@@ -326,6 +332,49 @@ def checkGiraffeOutputs(opFilePath):
 
 # def giraffeStress(opFilePath):
 
+
+def giraffeStress(Lxx, Lyy, t):
+      
+
+    # File for left side
+    # monfilepath = "4x4Job/monitors/monitor_nodeset_2.txt"
+    monfilepath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_2.txt'
+    data_left = np.genfromtxt(monfilepath, skip_header=1)
+    posx = np.abs(data_left[:,1])
+    posx = posx - posx[0]
+    posy = np.abs(data_left[:,2])
+    posy = posy - posy[0]
+    forcex = np.abs(data_left[:,7])
+    forcey = np.abs(data_left[:,8])
+    data_left = np.column_stack((posx, posy, forcex, forcey))
+
+    # File for top side
+    # monfilepath = "4x4Job/monitors/monitor_nodeset_4.txt"
+    monfilepath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_4.txt'
+    data_top = np.genfromtxt(monfilepath, skip_header=1)
+    posx = np.abs(data_top[:,1])
+    posx = posx - posx[0]
+    posy = np.abs(data_top[:,2])
+    posy = posy - posy[0]
+    forcex = np.abs(data_top[:,7])
+    forcey = np.abs(data_top[:,8])
+    data_top = np.column_stack((posx, posy, forcex, forcey))
+
+    # Get the forces
+    Fxx = data_left[-1,2]
+    Fyy = data_top[-1,3]
+    Fxy = data_left[-1,3]
+    Fyx = data_top[-1,2]
+
+    # Stress
+    stress = np.zeros((2,2))
+    stress[0,0] = Fxx/(1000*Lyy*t)
+    stress[1,1] = Fyy/(1000*Lxx*t)
+    stress[0,1] = Fxy/(1000*Lyy*t)
+    stress[1,0] = Fyx/(1000*Lxx*t)
+
+    return stress
+
 ######################################################################################################################################################
 
 # def giraffeStiffness(opFilePath)
@@ -335,7 +384,8 @@ def checkGiraffeOutputs(opFilePath):
 # AREA TO TEST CODE
 
 # Addeing file path of generated giraffe input file
-inp = giraffeInputGenerator(rvetype, name)
+# inp = giraffeInputGenerator(rvetype, name)
+inp, Lxx, Lyy, t = giraffeInputGenerator(rvetype, name)
 
 #%%
 
@@ -373,6 +423,12 @@ else:
     # If flag_giraffe is True, print message and exit program
     print("File is still empty after 10 tries.")
     exit()
+
+
+
+# Calculating stress 
+stress = giraffeStress(Lxx, Lyy, t)
+print(stress)
 
 #%% 
 ######################################################################################################################################################

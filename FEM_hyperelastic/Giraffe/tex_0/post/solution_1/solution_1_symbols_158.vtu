@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<VTKFile type="UnstructuredGrid" version="1.0" byte_order="LittleEndian" header_type="UInt64">
-<!--INPUT: tex_0.inp - TIME = 0.2068835721-->
-	<UnstructuredGrid>
-	</UnstructuredGrid>
-</VTKFile>
