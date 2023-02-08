@@ -335,7 +335,9 @@ def checkGiraffeOutputs(opFilePath):
 
 def giraffeStress(Lxx, Lyy, t):
       
-
+    # # Changing t temporarily    # Ask
+    # t = 1
+    
     # File for left side
     # monfilepath = "4x4Job/monitors/monitor_nodeset_2.txt"
     monfilepath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_2.txt'
