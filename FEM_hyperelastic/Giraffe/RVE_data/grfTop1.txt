@@ -535,4 +535,4 @@ NodalConstraint	4	NodeSet	4
 	UZ		BoolTable	0 
 	ROTX	BoolTable	0 
 	ROTY	BoolTable	0	
-	ROTZ	BoolTable	0 
+	ROTZ	BoolTable	0
