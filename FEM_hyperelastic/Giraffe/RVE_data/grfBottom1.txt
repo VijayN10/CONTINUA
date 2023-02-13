@@ -67,17 +67,3 @@ WriteSpecialConstraints 1
 WriteContactForces 1
 WriteRenderRigidBodies 0
 WriteRenderParticles 0
-
-ConvergenceCriteria
-ForceTolerance 1e-4
-MomentTolerance 1e-4
-ForceMinimumReference 1e-5
-MomentMinimumReference 1e-5
-ConstraintMinimumReference 1e-7
-DisplacementTolerance 1e-2
-RotationTolerance 1e-2
-LagrangeTolerance 1e-3
-DisplacementMinimumReference 1e-3
-RotationMinimumReference 1e-3
-LagrangeMinimumReference 1e-3
-DivergenceReference 1e+15

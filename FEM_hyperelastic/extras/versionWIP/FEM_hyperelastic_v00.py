@@ -84,6 +84,10 @@ ndload = 1
 dloads = np.array([[1],[2],[3],[0]])      # dloads = np.array([[1],[2],[3],[0]])
 
 
+# Path for Giraffe executables (where Giraffe is installed)
+ 
+path = "E:/Softwares/01/Giraffe/"
+
 # Name for the Giraffe input file (without identification number)
 
 name = "tex"
@@ -103,11 +107,11 @@ def giraffeInputGenerator(rvetype, name):
 
     # Create new folder with name of .inp file
     inp = name + '_' + str(rr)                       # inp = tex_0
-    # folder = path + inp                              # folder = E:/Softwares/01/Giraffe/tex_0
-    os.makedirs("Giraffe/" + inp, exist_ok=True)               # Creates tex_0 folder
+    folder = path + inp                              # folder = E:/Softwares/01/Giraffe/tex_0
+    os.makedirs(folder, exist_ok=True)               # Creates tex_0 folder
 
     # Take inputs from text file and assign following variables 
-    with open("Giraffe/RVE_data/rve"+ str(rr)  +".txt", "r") as file:
+    with open("data/rve"+ str(rr)  +".txt", "r") as file:
         Lxx, Lyy, t, nx, ny = [float(x) for x in file.read().split()]
         nx = int(nx)
         ny = int(ny)
@@ -117,7 +121,7 @@ def giraffeInputGenerator(rvetype, name):
     X = np.zeros(((nx + ny) * 2, 3))
 
     # Read the nodedata text files from data folder
-    with open("Giraffe/RVE_data/nodedata" + str(rr)  + ".txt", "r") as file:
+    with open("data/nodedata" + str(rr)  + ".txt", "r") as file:
         for i, line in enumerate(file):
             X[i] = [float(x) for x in line.strip().split()]
     
@@ -142,7 +146,7 @@ def giraffeInputGenerator(rvetype, name):
     
     # Convert alpha into a matrix
     alpha = np.array([[alpha1, alpha2],[alpha3, alpha4]])
-    # print(f'alpha = {alpha}')
+    print(f'alpha = {alpha}')
 
 
     # Initialize disp and calculate the displacement
@@ -150,20 +154,20 @@ def giraffeInputGenerator(rvetype, name):
     disp = np.zeros(((nx + ny) * 2,2))
     disp[:,0] = alpha1*X[:,0] + alpha2*X[:,1]
     disp[:,1] = alpha3*X[:,0] + alpha4*X[:,1]
-    # print(f'disp = {disp}')
+    print(f'disp = {disp}')
 
     # Read the top portion from grfTop{i}.txt
-    with open("Giraffe/RVE_data/grfTop" + str(rr)  + ".txt", "r") as top_file:
+    with open("data/grfTop" + str(rr)  + ".txt", "r") as top_file:
         top = top_file.read()
 
     # Read the bottom portion from grfBottom{i}.txt
-    with open("Giraffe/RVE_data/grfBottom" + str(rr) + ".txt", "r") as bottom_file:
+    with open("data/grfBottom" + str(rr) + ".txt", "r") as bottom_file:
         bottom = bottom_file.read()
 
 
     # Open the file for writing
 
-    filepath = 'Giraffe/' + inp + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex_0/tex_0.inp
+    filepath = folder + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex_0/tex_0.inp
     with open(filepath, 'w') as file:
         
     # Top part of Giraffe input file
@@ -252,31 +256,23 @@ def giraffeInputGenerator(rvetype, name):
         file.write(bottom)
 
 
-    return inp, Lxx, Lyy, t
+    return folder, inp
 
 ######################################################################################################################################################
 
 # Run giraffe
 
-def runGiraffe(inp):
+def runGiraffe(path, folder, inp):
 
     # path : E:/Softwares/01/Giraffe/
     # folder : E:/Softwares/01/Giraffe/tex_0
     # inp  : tex_0
 
     # path of Giraffe.exe
-    # giraffe = path + "Giraffe.exe"
+    giraffe = path + "Giraffe.exe"
     
-    # cur_folder = os.path.dirname(os.getcwd())
-    # print(cur_folder)
-    
-    cur_folder = os.getcwd()
-    # print(cur_folder)    
-   
-    # Changing directory
-    os.chdir('Giraffe')
 
-    p = subprocess.Popen(["Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen([giraffe], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
     # p = subprocess.Popen([r"E:\Softwares\01\Giraffe\Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
     input_file_name = inp                                                            # input("Enter the name of the input file: ")
     # p.communicate(input=input_file_name.encode())
@@ -287,29 +283,39 @@ def runGiraffe(inp):
     else:
         print("Output: ", output.decode())
 
+        
+    # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
+    report = folder + '/simulation_report.txt'
 
-    # # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
-    # report = 'Giraffe/' + inp + '/simulation_report.txt'
+    while True:
+        with open(report, "r") as f:
+            lines = f.readlines()
+            if lines:
+                last_line = lines[-1]
+                if "Total solution time:" in last_line:
+                    print("Simulation completed.\n", last_line)
+                    break
+                else:
+                    print(last_line, end="")
+            time.sleep(1)   
+    
 
-    # while True:
-    #     with open(report, "r") as f:
-    #         lines = f.readlines()
-    #         if lines:
-    #             last_line = lines[-1]
-    #             if "Total solution time:" in last_line:
-    #                 print("Simulation completed.\n", last_line)
-    #                 break
-    #             else:
-    #                 print(last_line, end="")
-    #         time.sleep(1)   
-    
-    # Going back to current directory or folder
-    os.chdir(cur_folder)
-    
-    opFilePath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_1.txt'
+        opFilePath = folder + '/monitors/monitor_nodeset_1.txt'
 
     return opFilePath
 
+
+# To run file from here. Error - SOftware not running 
+
+# def runGiraffe_run(folder):
+    
+#     # Run the Giraffe_run.py script using subprocess
+#     subprocess.run(["python", "E:/Softwares/01/Giraffe/Giraffe_run.py"])
+    
+#     # Get the opFilePath
+#     opFilePath = folder + '/monitors/monitor_nodeset_1.txt'
+
+#     return opFilePath
 
 ######################################################################################################################################################
 
@@ -322,7 +328,7 @@ def runGiraffe(inp):
 def checkGiraffeOutputs(opFilePath):
 
     if os.path.getsize(opFilePath) == 0:
-        print("File is empty! We are running the Giraffe again...")
+        print("File is empty!")
         return True
     
     return False
@@ -331,51 +337,6 @@ def checkGiraffeOutputs(opFilePath):
 ######################################################################################################################################################
 
 # def giraffeStress(opFilePath):
-
-
-def giraffeStress(Lxx, Lyy, t):
-      
-    # # Changing t temporarily    # Ask
-    # t = 1
-    
-    # File for left side
-    # monfilepath = "4x4Job/monitors/monitor_nodeset_2.txt"
-    monfilepath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_2.txt'
-    data_left = np.genfromtxt(monfilepath, skip_header=1)
-    posx = np.abs(data_left[:,1])
-    posx = posx - posx[0]
-    posy = np.abs(data_left[:,2])
-    posy = posy - posy[0]
-    forcex = np.abs(data_left[:,7])
-    forcey = np.abs(data_left[:,8])
-    data_left = np.column_stack((posx, posy, forcex, forcey))
-
-    # File for top side
-    # monfilepath = "4x4Job/monitors/monitor_nodeset_4.txt"
-    monfilepath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_4.txt'
-    data_top = np.genfromtxt(monfilepath, skip_header=1)
-    posx = np.abs(data_top[:,1])
-    posx = posx - posx[0]
-    posy = np.abs(data_top[:,2])
-    posy = posy - posy[0]
-    forcex = np.abs(data_top[:,7])
-    forcey = np.abs(data_top[:,8])
-    data_top = np.column_stack((posx, posy, forcex, forcey))
-
-    # Get the forces
-    Fxx = data_left[-1,2]
-    Fyy = data_top[-1,3]
-    Fxy = data_left[-1,3]
-    Fyx = data_top[-1,2]
-
-    # Stress
-    stress = np.zeros((2,2))
-    stress[0,0] = Fxx/(1000*Lyy*t)
-    stress[1,1] = Fyy/(1000*Lxx*t)
-    stress[0,1] = Fxy/(1000*Lyy*t)
-    stress[1,0] = Fyx/(1000*Lxx*t)
-
-    return stress
 
 ######################################################################################################################################################
 
@@ -386,16 +347,16 @@ def giraffeStress(Lxx, Lyy, t):
 # AREA TO TEST CODE
 
 # Addeing file path of generated giraffe input file
-# inp = giraffeInputGenerator(rvetype, name)
-inp, Lxx, Lyy, t = giraffeInputGenerator(rvetype, name)
+folder, inp = giraffeInputGenerator(rvetype, name)
 
 #%%
 
-# Run giraffe
-opFilePath = runGiraffe(inp)
+# # Run giraffe
+# opFilePath = runGiraffe(path, folder, inp)
+opFilePath = folder + '/monitors/monitor_nodeset_1.txt' 
 
-
-#%%
+# # To run python script
+# opFilePath = runGiraffe_run(folder)
 
 # Check if the output file is empty using `checkGiraffeOutputs` function
 flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
@@ -406,8 +367,8 @@ counterGiraffe = 0
 # Keep looping while the output file is empty and counter is less than 10
 while flag_giraffe and counterGiraffe < 10:
 
-    # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
-    opFilePath = runGiraffe(inp)
+    # # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
+    # opFilePath = runGiraffe(path, folder, inp)
 
     # Check the output file again
     flag_giraffe = checkGiraffeOutputs(opFilePath)
@@ -425,12 +386,6 @@ else:
     # If flag_giraffe is True, print message and exit program
     print("File is still empty after 10 tries.")
     exit()
-
-
-
-# Calculating stress 
-stress = giraffeStress(Lxx, Lyy, t)
-print(stress)
 
 #%% 
 ######################################################################################################################################################
@@ -974,6 +929,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
             for j in range(ncoord):
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
+        print(F)
                     
         # for i in range(ncoord):
         #     for j in range(ncoord):
@@ -1011,9 +967,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
         
 
         elif model == 2:
-            
-            # REPLACE below codes after checking all functions and callings. Use the new one (whixh is outside the loop currently)
-            
+
             # Call giraffe function 
 
             # Addeing file path of generated giraffe input file

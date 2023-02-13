@@ -45,7 +45,7 @@ import os
 # Total no. material parameters and list of parameters
 
 nprops = 2
-materialprops = np.array([[2], [5]])    # materialprops[mu1,K1]      # Python first position is 0 --> Need to change all code?
+materialprops = np.array([[2], [3]])    # materialprops[mu1,K1]      # Python first position is 0 --> Need to change all code?
                                         # 2 implies multiscale, 5 implies number of rves
 # mu1 = 1
 # k1 = 10
@@ -94,165 +94,165 @@ name = "tex"
 # It creates new folder (with the same name of Giaffe input file) at location of executables. 
 # The folder contains the created file.
 
-def giraffeInputGenerator(rvetype, name):
+def giraffeInputGenerator(rvetype, name, F):
 
     # # Loop to generate file for each RVE          # Need to check
 
-    # for rr in range(rvetype):                      
-    rr = 0
+    for rr in range(rvetype):                      
+ 
 
-    # Create new folder with name of .inp file
-    inp = name + '_' + str(rr)                       # inp = tex_0
-    # folder = path + inp                              # folder = E:/Softwares/01/Giraffe/tex_0
-    os.makedirs("Giraffe/" + inp, exist_ok=True)               # Creates tex_0 folder
+        # Create new folder with name of .inp file
+        inp = name + '_' + str(rr)                       # inp = tex_0
+        # folder = path + inp                              # folder = E:/Softwares/01/Giraffe/tex_0
+        os.makedirs(inp, exist_ok=True)               # Creates tex_0 folder
 
-    # Take inputs from text file and assign following variables 
-    with open("Giraffe/RVE_data/rve"+ str(rr)  +".txt", "r") as file:
-        Lxx, Lyy, t, nx, ny = [float(x) for x in file.read().split()]
-        nx = int(nx)
-        ny = int(ny)
+        # Take inputs from text file and assign following variables 
+        with open("data/rve"+ str(rr)  +".txt", "r") as file:
+            Lxx, Lyy, t, nx, ny = [float(x) for x in file.read().split()]
+            nx = int(nx)
+            ny = int(ny)
 
-    # Get the nodal coordinates of the ends of the beams
+        # Get the nodal coordinates of the ends of the beams
 
-    X = np.zeros(((nx + ny) * 2, 3))
+        X = np.zeros(((nx + ny) * 2, 3))
 
-    # Read the nodedata text files from data folder
-    with open("Giraffe/RVE_data/nodedata" + str(rr)  + ".txt", "r") as file:
-        for i, line in enumerate(file):
-            X[i] = [float(x) for x in line.strip().split()]
-    
-    # Deformation gradient
-
-    # Assumption
-    F = np.array([[1.2, 0.2],
-                [0.2, 1.2]]) 
-    # Comment F after adding in loop
-
-    # To calculate deformation gradient at each integration point :
-    # Loop to be added 
-
-    # Get the strain from the deformation gradient
-    strain = F - np.eye(2)
-
-    # Get alpha values from strain tensor
-    alpha1 = strain[0,0]
-    alpha2 = strain[0,1]
-    alpha3 = strain[1,0]
-    alpha4 = strain[1,1]
-    
-    # Convert alpha into a matrix
-    alpha = np.array([[alpha1, alpha2],[alpha3, alpha4]])
-    # print(f'alpha = {alpha}')
-
-
-    # Initialize disp and calculate the displacement
-    # of the ends of the beams
-    disp = np.zeros(((nx + ny) * 2,2))
-    disp[:,0] = alpha1*X[:,0] + alpha2*X[:,1]
-    disp[:,1] = alpha3*X[:,0] + alpha4*X[:,1]
-    # print(f'disp = {disp}')
-
-    # Read the top portion from grfTop{i}.txt
-    with open("Giraffe/RVE_data/grfTop" + str(rr)  + ".txt", "r") as top_file:
-        top = top_file.read()
-
-    # Read the bottom portion from grfBottom{i}.txt
-    with open("Giraffe/RVE_data/grfBottom" + str(rr) + ".txt", "r") as bottom_file:
-        bottom = bottom_file.read()
-
-
-    # Open the file for writing
-
-    filepath = 'Giraffe/' + inp + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex_0/tex_0.inp
-    with open(filepath, 'w') as file:
+        # Read the nodedata text files from data folder
+        with open("data/nodedata" + str(rr)  + ".txt", "r") as file:
+            for i, line in enumerate(file):
+                X[i] = [float(x) for x in line.strip().split()]
         
-    # Top part of Giraffe input file
+        # Deformation gradient
 
-        file.write(top) 
+        # # Assumption
+        # F = np.array([[1.2, 0.2],
+        #             [0.2, 1.2]]) 
+        # # Comment F after adding in loop
 
-    # Displacement block
+        # To calculate deformation gradient at each integration point :
+        # Loop to be added 
 
-    # Left
+        # Get the strain from the deformation gradient
+        strain = F - np.eye(2)
 
-        file.write("""
+        # Get alpha values from strain tensor
+        alpha1 = strain[0,0]
+        alpha2 = strain[0,1]
+        alpha3 = strain[1,0]
+        alpha4 = strain[1,1]
         
-    Displacements 8
-    ///////////////////////////////
-    ///////////left////////////////
-    ///////////////////////////////
-    NodalDisplacement 1 NodeSet 5 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0     
-        """)   
-        file.write(f'2 {disp[0,0]:.12f} {disp[0,1]:.12f} 0 0 0 0\n')
-        file.write("""
-    NodalDisplacement 2 NodeSet 6 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0
-        """)
-        file.write(f'2 {disp[1,0]:.12f} {disp[1,1]:.12f} 0 0 0 0\n\n')
-
-    # Right
-
-        file.write("""
-    ///////////////////////////////
-    ///////////right///////////////
-    ///////////////////////////////
-    NodalDisplacement 3 NodeSet 7 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0
-        """)
-        file.write(f'2 {disp[2,0]:.12f} {disp[2,1]:.12f} 0 0 0 0\n')
-        file.write("""
-    NodalDisplacement 4 NodeSet 8 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0
-        """)
-        file.write(f'2 {disp[3,0]:.12f} {disp[3,1]:.12f} 0 0 0 0\n\n')
-
-    # Bottom
-
-        file.write("""
-    ///////////////////////////////
-    ///////////bottom//////////////
-    ///////////////////////////////
-    NodalDisplacement 5 NodeSet 9 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0
-        """)
-        file.write(f'2 {disp[4,0]:.12f} {disp[4,1]:.12f} 0 0 0 0\n')
-        file.write("""
-    NodalDisplacement 6 NodeSet 10 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0
-        """)
-        file.write(f'2 {disp[5,0]:.12f} {disp[5,1]:.12f} 0 0 0 0\n\n')
-
-    # Top
-
-        file.write("""
-    ///////////////////////////////
-    ///////////top/////////////////
-    ///////////////////////////////
-    NodalDisplacement 7 NodeSet 11 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0
-        """)
-        file.write(f'2 {disp[6,0]:.12f} {disp[6,1]:.12f} 0 0 0 0\n')
-        file.write("""
-    NodalDisplacement 8 NodeSet 12 CS 125 NTimes 2
-    //Time UX UY UZ ROTX ROTY ROTZ
-    0	0	0	0	0	0	0
-        """)
-        file.write(f'2 {disp[7,0]:.12f} {disp[7,1]:.12f} 0 0 0 0\n\n')
+        # Convert alpha into a matrix
+        alpha = np.array([[alpha1, alpha2],[alpha3, alpha4]])
+        print(f'alpha = {alpha}')
 
 
-    # Bottom part of Giraffe input file
+        # Initialize disp and calculate the displacement
+        # of the ends of the beams
+        disp = np.zeros(((nx + ny) * 2,2))
+        disp[:,0] = alpha1*X[:,0] + alpha2*X[:,1]
+        disp[:,1] = alpha3*X[:,0] + alpha4*X[:,1]
+        print(f'disp = {disp}')
 
-        file.write(bottom)
+        # Read the top portion from grfTop{i}.txt
+        with open("data/grfTop" + str(rr)  + ".txt", "r") as top_file:
+            top = top_file.read()
+
+        # Read the bottom portion from grfBottom{i}.txt
+        with open("data/grfBottom" + str(rr) + ".txt", "r") as bottom_file:
+            bottom = bottom_file.read()
 
 
-    return inp, Lxx, Lyy, t
+        # Open the file for writing
+
+        filepath = inp + '/' + inp + '.inp'         # filepath - E:/Softwares/01/Giraffe/tex_0/tex_0.inp
+        with open(filepath, 'w') as file:
+            
+        # Top part of Giraffe input file
+
+            file.write(top) 
+
+        # Displacement block
+
+        # Left
+
+            file.write("""
+            
+        Displacements 8
+        ///////////////////////////////
+        ///////////left////////////////
+        ///////////////////////////////
+        NodalDisplacement 1 NodeSet 5 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0     
+            """)   
+            file.write(f'2 {disp[0,0]:.12f} {disp[0,1]:.12f} 0 0 0 0\n')
+            file.write("""
+        NodalDisplacement 2 NodeSet 6 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0
+            """)
+            file.write(f'2 {disp[1,0]:.12f} {disp[1,1]:.12f} 0 0 0 0\n\n')
+
+        # Right
+
+            file.write("""
+        ///////////////////////////////
+        ///////////right///////////////
+        ///////////////////////////////
+        NodalDisplacement 3 NodeSet 7 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0
+            """)
+            file.write(f'2 {disp[2,0]:.12f} {disp[2,1]:.12f} 0 0 0 0\n')
+            file.write("""
+        NodalDisplacement 4 NodeSet 8 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0
+            """)
+            file.write(f'2 {disp[3,0]:.12f} {disp[3,1]:.12f} 0 0 0 0\n\n')
+
+        # Bottom
+
+            file.write("""
+        ///////////////////////////////
+        ///////////bottom//////////////
+        ///////////////////////////////
+        NodalDisplacement 5 NodeSet 9 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0
+            """)
+            file.write(f'2 {disp[4,0]:.12f} {disp[4,1]:.12f} 0 0 0 0\n')
+            file.write("""
+        NodalDisplacement 6 NodeSet 10 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0
+            """)
+            file.write(f'2 {disp[5,0]:.12f} {disp[5,1]:.12f} 0 0 0 0\n\n')
+
+        # Top
+
+            file.write("""
+        ///////////////////////////////
+        ///////////top/////////////////
+        ///////////////////////////////
+        NodalDisplacement 7 NodeSet 11 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0
+            """)
+            file.write(f'2 {disp[6,0]:.12f} {disp[6,1]:.12f} 0 0 0 0\n')
+            file.write("""
+        NodalDisplacement 8 NodeSet 12 CS 125 NTimes 2
+        //Time UX UY UZ ROTX ROTY ROTZ
+        0	0	0	0	0	0	0
+            """)
+            file.write(f'2 {disp[7,0]:.12f} {disp[7,1]:.12f} 0 0 0 0\n\n')
+
+
+        # Bottom part of Giraffe input file
+
+            file.write(bottom)
+
+
+    return inp
 
 ######################################################################################################################################################
 
@@ -267,14 +267,6 @@ def runGiraffe(inp):
     # path of Giraffe.exe
     # giraffe = path + "Giraffe.exe"
     
-    # cur_folder = os.path.dirname(os.getcwd())
-    # print(cur_folder)
-    
-    cur_folder = os.getcwd()
-    # print(cur_folder)    
-   
-    # Changing directory
-    os.chdir('Giraffe')
 
     p = subprocess.Popen(["Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
     # p = subprocess.Popen([r"E:\Softwares\01\Giraffe\Giraffe.exe"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
@@ -287,26 +279,24 @@ def runGiraffe(inp):
     else:
         print("Output: ", output.decode())
 
+        
+    # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
+    report = inp + '/simulation_report.txt'
 
-    # # report = r"E:\Softwares\01\Giraffe\tex_0\simulation_report.txt"
-    # report = 'Giraffe/' + inp + '/simulation_report.txt'
+    while True:
+        with open(report, "r") as f:
+            lines = f.readlines()
+            if lines:
+                last_line = lines[-1]
+                if "Total solution time:" in last_line:
+                    print("Simulation completed.\n", last_line)
+                    break
+                else:
+                    print(last_line, end="")
+            time.sleep(1)   
+    
 
-    # while True:
-    #     with open(report, "r") as f:
-    #         lines = f.readlines()
-    #         if lines:
-    #             last_line = lines[-1]
-    #             if "Total solution time:" in last_line:
-    #                 print("Simulation completed.\n", last_line)
-    #                 break
-    #             else:
-    #                 print(last_line, end="")
-    #         time.sleep(1)   
-    
-    # Going back to current directory or folder
-    os.chdir(cur_folder)
-    
-    opFilePath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_1.txt'
+    opFilePath = inp + '/monitors/monitor_nodeset_1.txt'
 
     return opFilePath
 
@@ -332,51 +322,6 @@ def checkGiraffeOutputs(opFilePath):
 
 # def giraffeStress(opFilePath):
 
-
-def giraffeStress(Lxx, Lyy, t):
-      
-    # # Changing t temporarily    # Ask
-    # t = 1
-    
-    # File for left side
-    # monfilepath = "4x4Job/monitors/monitor_nodeset_2.txt"
-    monfilepath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_2.txt'
-    data_left = np.genfromtxt(monfilepath, skip_header=1)
-    posx = np.abs(data_left[:,1])
-    posx = posx - posx[0]
-    posy = np.abs(data_left[:,2])
-    posy = posy - posy[0]
-    forcex = np.abs(data_left[:,7])
-    forcey = np.abs(data_left[:,8])
-    data_left = np.column_stack((posx, posy, forcex, forcey))
-
-    # File for top side
-    # monfilepath = "4x4Job/monitors/monitor_nodeset_4.txt"
-    monfilepath = 'Giraffe/' + inp + '/monitors/monitor_nodeset_4.txt'
-    data_top = np.genfromtxt(monfilepath, skip_header=1)
-    posx = np.abs(data_top[:,1])
-    posx = posx - posx[0]
-    posy = np.abs(data_top[:,2])
-    posy = posy - posy[0]
-    forcex = np.abs(data_top[:,7])
-    forcey = np.abs(data_top[:,8])
-    data_top = np.column_stack((posx, posy, forcex, forcey))
-
-    # Get the forces
-    Fxx = data_left[-1,2]
-    Fyy = data_top[-1,3]
-    Fxy = data_left[-1,3]
-    Fyx = data_top[-1,2]
-
-    # Stress
-    stress = np.zeros((2,2))
-    stress[0,0] = Fxx/(1000*Lyy*t)
-    stress[1,1] = Fyy/(1000*Lxx*t)
-    stress[0,1] = Fxy/(1000*Lyy*t)
-    stress[1,0] = Fyx/(1000*Lxx*t)
-
-    return stress
-
 ######################################################################################################################################################
 
 # def giraffeStiffness(opFilePath)
@@ -385,54 +330,6 @@ def giraffeStress(Lxx, Lyy, t):
 
 # AREA TO TEST CODE
 
-# Addeing file path of generated giraffe input file
-# inp = giraffeInputGenerator(rvetype, name)
-inp, Lxx, Lyy, t = giraffeInputGenerator(rvetype, name)
-
-#%%
-
-# Run giraffe
-opFilePath = runGiraffe(inp)
-
-
-#%%
-
-# Check if the output file is empty using `checkGiraffeOutputs` function
-flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
-
-# Set a counter to limit the number of tries
-counterGiraffe = 0
-
-# Keep looping while the output file is empty and counter is less than 10
-while flag_giraffe and counterGiraffe < 10:
-
-    # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
-    opFilePath = runGiraffe(inp)
-
-    # Check the output file again
-    flag_giraffe = checkGiraffeOutputs(opFilePath)
-
-    # Increment the counter
-    counterGiraffe += 1
-
-# Check if flag_giraffe is False
-if not flag_giraffe:
-    print("Calculating stress and dsde")
-    # stress = giraffeStress(opFilePath)
-    # dsde = giraffeStiffness(opFilePath)
-    
-else:
-    # If flag_giraffe is True, print message and exit program
-    print("File is still empty after 10 tries.")
-    exit()
-
-
-
-# Calculating stress 
-stress = giraffeStress(Lxx, Lyy, t)
-print(stress)
-
-#%% 
 ######################################################################################################################################################
 
 #================= Material Stiffness ==================================
@@ -975,13 +872,6 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
                     
-        # for i in range(ncoord):
-        #     for j in range(ncoord):
-        #         F[i][j] = 0
-        #         if i == j:
-        #             F[i][i] = 1
-        #         for a in range(nelnodes):
-        #             F[i][j] += displacement[i][a] * dNdx[a][j]
         
         # Compute Bbar and J
 
@@ -1009,18 +899,13 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
 
             dsde = materialstiffness(ndof, ncoord, B, J, materialprops)
         
-
         elif model == 2:
             
-            # REPLACE below codes after checking all functions and callings. Use the new one (whixh is outside the loop currently)
-            
-            # Call giraffe function 
-
             # Addeing file path of generated giraffe input file
-            Filepath = giraffeInputGenerator(F,rvetype)
+            inp = giraffeInputGenerator(rvetype, name, F)
 
             # Run giraffe
-            opFilePath = runGiraffe(Filepath)
+            opFilePath = runGiraffe(inp)
 
             # Check if the output file is empty using `checkGiraffeOutputs` function
             flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
@@ -1032,7 +917,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
             while flag_giraffe and counterGiraffe < 10:
 
                 # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
-                opFilePath = runGiraffe(Filepath)
+                opFilePath = runGiraffe(inp)
 
                 # Check the output file again
                 flag_giraffe = checkGiraffeOutputs(opFilePath)
@@ -1040,34 +925,16 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 # Increment the counter
                 counterGiraffe += 1
 
-            # If the flag_giraffe becomes False, indicating that the file is not empty, or 
-            # if the counterGiraffe becomes equal to 10, indicating that the loop has run 10 times, 
-            # then the loop will stop running and the code outside the loop will be executed.
-
-
-            # # Check if flag_giraffe is False
-            # if not flag_giraffe:
-            #     stress = giraffeStress(opFilePath)
-            #     dsde = giraffeStiffness(opFilePath)
-              
-            # else:
-            #     # If flag_giraffe is True, print message and exit program
-            #     print("File is still empty after 10 tries.")
-            #     exit()
-
-
-            # DELETE BELOW COMMENTED CODE AFTER CHECKING ABOVE UPDATED CODE
-            # # Get stress and dsde 
-            # counterGiraffe = 0
-            # while flag_giraffe is not 1 and counterGiraffe < 10: # check syntax
-            #     opFilePath = runGiraffe(Filepath)
-            #     counterGiraffe += 1
-            # if flag_giraffe == 0 and counterGiraffe == 10:
-            #     stress = giraffeStress(opFilePath)
-            #     dsde = giraffeStiffness(opFilePath)
-            # If flg is not 1 run giraffe          
-            # else:
-                # stop prgram and print error
+            # Check if flag_giraffe is False
+            if not flag_giraffe:
+                print("Calculating stress and dsde")
+                # stress = giraffeStress(opFilePath)
+                # dsde = giraffeStiffness(opFilePath)
+                
+            else:
+                # If flag_giraffe is True, print message and exit program
+                print("File is still empty after 10 tries.")
+                exit()
   
         
         # Compute the element stiffness
