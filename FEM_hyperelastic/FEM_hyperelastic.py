@@ -47,7 +47,7 @@ import shutil
 # Total no. material parameters and list of parameters
 
 nprops = 2
-materialprops = np.array([[2], [5]])    # materialprops[mu1,K1]      # Python first position is 0 --> Need to change all code?
+materialprops = np.array([[2], [5]])    # materialprops[mu1,K1]      # Python first position is 0 --> change in all code
                                         # 2 implies multiscale, 5 implies number of rves
 # mu1 = 1
 # k1 = 10
@@ -335,7 +335,7 @@ def checkGiraffeOutputs(opFilePath):
 # def giraffeStress(opFilePath):
 
 
-def giraffeStress(Lxx, Lyy, t):
+def giraffeStress(Lxx, Lyy, t, inp):
       
     # # Changing t temporarily    # Ask
     # t = 1
@@ -416,185 +416,6 @@ def Voigt2normal(Dnumerical):
 #%% 
 ######################################################################################################################################################
 # AREA TO TEST CODE 21/02/2023
-
-F = np.array([[1.2, 0.2],         # Assume, later delete it after adding in loop
-            [0.2, 1.2]])
-
-
-# Create a new Giraffe file
-inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F) 
-
-# Run Giraffe
-opFilePath = runGiraffe(inp)
-
-# Check if Giraffe has run
-
-# Check if the output file is empty using `checkGiraffeOutputs` function
-flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
-
-# Set a counter to limit the number of tries
-counterGiraffe = 0
-
-# Keep looping while the output file is empty and counter is less than 10
-while flag_giraffe and counterGiraffe < 10:
-
-    # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
-    opFilePath = runGiraffe(inp)
-
-    # Check the output file again
-    flag_giraffe = checkGiraffeOutputs(opFilePath)
-
-    # Increment the counter
-    counterGiraffe += 1
-
-# Check if flag_giraffe is False
-if not flag_giraffe:
-    print("Calculating stress and dsde")
-                
-else:
-    # If flag_giraffe is True, print message and exit program
-    print("File is still empty after 10 tries.")
-    exit()   
-
-# Get the stress from Giraffe outputs
-stress = giraffeStress(Lxx, Lyy, t)
-
-#%%
-
-shutil.rmtree(folder)                  # Can we delete this folder?
-
-#%%
-## STEP 01
-
-# # Convert to the right stress measures          # WIP
-# stress = np.dot(F, stress.T)                 
-
-# Get the Right Cauchy Green deformation tensor
-C = np.dot(F.T, F)
-
-# Extract the eigenvalues and eigenvectors of C
-# These are the principle stretches and the principle directions
-val, vec = eig(C)     # check val, vec or vec, val
-
-# Initialize and get the stretch tensor by decomposition
-U = np.zeros((2,2))
-for i in range(2):
-    U += np.sqrt(val[i])*np.outer(vec[:,i], vec[:,i])
-
-# Get rotation matrix using F = RU decomposition
-Rot = np.dot(F, inv(U))
-
-## STEP 02
-
-# Machine precision
-sqeps = np.sqrt(np.finfo(float).eps)
-      
-# Initialize a matrix for the Numerical tangent
-Dnumerical = np.zeros((3,3))
-io = [0, 1, 0, 1]
-it = [0, 1, 1, 0]
-
-## STEP 03
-
-# Start the loop to calculate the numerical tangent
-
-# Calculate the numerical tangent
-for aa in range(3):
-          
-    # Initialize to zero
-    dC = np.zeros((2,2))
-            
-    # If clause
-    if(aa < 2):
-        if(C[aa,aa] == 0):
-            e = sqeps
-        else:
-            e = sqeps*C[aa,aa]
-        dC[aa,aa] = 1
-    else:
-        if(C[io[aa],it[aa]] == 0):
-            e = sqeps
-        else:
-            e = sqeps*C[io[aa],it[aa]]
-        dC[io[aa],it[aa]] = 0.5
-        dC[it[aa],io[aa]] = 0.5
-
-    # Calculate the pertured Left Cauchy green deformation tensor (LCGDT)
-    Cp = C + e*dC
-    
-    # Calcualte the perturbed Related perturbed kinematic measures
-    # Get eigenvalues and vector for perturbed LCGDT
-    valp, vecp = eig(Cp)
-
-    # Get perturbed stretch tensor
-    Up = np.zeros((2,2))
-    for kk in range(2):
-        Up += np.sqrt(valp[kk])*np.outer(vecp[:,kk], vecp[:,kk])
-
-    # Get perturbed deformation gradient
-    Fp = np.dot(Rot, Up)
-    
-    F = Fp
-
-    # Create a new Giraffe file
-    # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, Fp)
-    inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F)  # Send Fp here (Need to add other function?)
-
-    # Run Giraffe
-    print(f"Giraffe is running for aa = {aa}...")
-    opFilePath = runGiraffe(inp)
-
-    # Check if Giraffe has run
-    
-    # Check if the output file is empty using `checkGiraffeOutputs` function
-    flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
-
-    # Set a counter to limit the number of tries
-    counterGiraffe = 0
-
-    # Keep looping while the output file is empty and counter is less than 10
-    while flag_giraffe and counterGiraffe < 10:
-
-        # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
-        opFilePath = runGiraffe(inp)
-
-        # Check the output file again
-        flag_giraffe = checkGiraffeOutputs(opFilePath)
-
-        # Increment the counter
-        counterGiraffe += 1
-
-    # Check if flag_giraffe is False
-    if not flag_giraffe:
-        print("Calculating stress and dsde")
-                 
-    else:
-        # If flag_giraffe is True, print message and exit program
-        print("File is still empty after 10 tries.")
-        exit()   
-
-    # Get the stress from Giraffe outputs
-    stresspm = giraffeStress(Lxx, Lyy, t)
-
-    # Convert the stress measure
-    stresspm = np.dot(Fp, stresspm.T)                           
-        
-    # Get the numerical tangent
-    Dnumerical[0,aa] = (2/e)*(stresspm[0,0] - stress[0,0])
-    Dnumerical[1,aa] = (2/e)*(stresspm[1,1] - stress[1,1])
-    Dnumerical[2,aa] = (2/e)*(stresspm[0,1] - stress[0,1])
-
-    # Delete the Giraffe case folder
-    print("Task completed and now deleting folder...")
-    shutil.rmtree(folder)                                                # WIP Not removing folder
-    print("folder deleted...")
-
-# Convert the obtained numerical tangent to the form
-# usable by this code 
-dsde = Voigt2normal(Dnumerical) 
-
-#%%
-print(dsde)
 
 #%% 
 ######################################################################################################################################################
@@ -1139,13 +960,6 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 for a in range(nelnodes):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
                     
-        # for i in range(ncoord):
-        #     for j in range(ncoord):
-        #         F[i][j] = 0
-        #         if i == j:
-        #             F[i][i] = 1
-        #         for a in range(nelnodes):
-        #             F[i][j] += displacement[i][a] * dNdx[a][j]
         
         # Compute Bbar and J
 
@@ -1176,15 +990,13 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
 
         elif model == 2:
             
-            # REPLACE below codes after checking all functions and callings. Use the new one (whixh is outside the loop currently)
-            
-            # Call giraffe function 
+            # Create a new Giraffe file
+            inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F) 
 
-            # Addeing file path of generated giraffe input file
-            Filepath = giraffeInputGenerator(F,rvetype)
+            # Run Giraffe
+            opFilePath = runGiraffe(inp)
 
-            # Run giraffe
-            opFilePath = runGiraffe(Filepath)
+            # Check if Giraffe has run
 
             # Check if the output file is empty using `checkGiraffeOutputs` function
             flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
@@ -1196,7 +1008,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
             while flag_giraffe and counterGiraffe < 10:
 
                 # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
-                opFilePath = runGiraffe(Filepath)
+                opFilePath = runGiraffe(inp)
 
                 # Check the output file again
                 flag_giraffe = checkGiraffeOutputs(opFilePath)
@@ -1204,36 +1016,152 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 # Increment the counter
                 counterGiraffe += 1
 
-            # If the flag_giraffe becomes False, indicating that the file is not empty, or 
-            # if the counterGiraffe becomes equal to 10, indicating that the loop has run 10 times, 
-            # then the loop will stop running and the code outside the loop will be executed.
+            # Check if flag_giraffe is False
+            if not flag_giraffe:
+                print("Calculating stress and dsde")
+                            
+            else:
+                # If flag_giraffe is True, print message and exit program
+                print("File is still empty after 10 tries.")
+                exit()   
 
+            # Get the stress from Giraffe outputs
+            stress = giraffeStress(Lxx, Lyy, t, inp)
 
-            # # Check if flag_giraffe is False
-            # if not flag_giraffe:
-            #     stress = giraffeStress(opFilePath)
-            #     dsde = giraffeStiffness(opFilePath)
-              
-            # else:
-            #     # If flag_giraffe is True, print message and exit program
-            #     print("File is still empty after 10 tries.")
-            #     exit()
-
-
-            # DELETE BELOW COMMENTED CODE AFTER CHECKING ABOVE UPDATED CODE
-            # # Get stress and dsde 
-            # counterGiraffe = 0
-            # while flag_giraffe is not 1 and counterGiraffe < 10: # check syntax
-            #     opFilePath = runGiraffe(Filepath)
-            #     counterGiraffe += 1
-            # if flag_giraffe == 0 and counterGiraffe == 10:
-            #     stress = giraffeStress(opFilePath)
-            #     dsde = giraffeStiffness(opFilePath)
-            # If flg is not 1 run giraffe          
-            # else:
-                # stop prgram and print error
+            shutil.rmtree(folder)        # Deleting the folder         
   
-        
+            ## STEP 01
+
+            # # Convert to the right stress measures          # WIP
+            # stress = np.dot(F, stress.T)                 
+
+            # Get the Right Cauchy Green deformation tensor
+            C = np.dot(F.T, F)
+
+            # Extract the eigenvalues and eigenvectors of C
+            # These are the principle stretches and the principle directions
+            val, vec = eig(C)     # check val, vec or vec, val
+
+            # Initialize and get the stretch tensor by decomposition
+            U = np.zeros((2,2))
+            for i in range(2):
+                U += np.sqrt(val[i])*np.outer(vec[:,i], vec[:,i])
+
+            # Get rotation matrix using F = RU decomposition
+            Rot = np.dot(F, inv(U))
+
+            ## STEP 02
+
+            # Machine precision
+            sqeps = np.sqrt(np.finfo(float).eps)
+                
+            # Initialize a matrix for the Numerical tangent
+            Dnumerical = np.zeros((3,3))
+            io = [0, 1, 0, 1]
+            it = [0, 1, 1, 0]
+
+            ## STEP 03
+
+            # Start the loop to calculate the numerical tangent
+
+            # Calculate the numerical tangent
+            for aa in range(3):
+                    
+                # Initialize to zero
+                dC = np.zeros((2,2))
+                        
+                # If clause
+                if(aa < 2):
+                    if(C[aa,aa] == 0):
+                        e = sqeps
+                    else:
+                        e = sqeps*C[aa,aa]
+                    dC[aa,aa] = 1
+                else:
+                    if(C[io[aa],it[aa]] == 0):
+                        e = sqeps
+                    else:
+                        e = sqeps*C[io[aa],it[aa]]
+                    dC[io[aa],it[aa]] = 0.5
+                    dC[it[aa],io[aa]] = 0.5
+
+                # Calculate the pertured Left Cauchy green deformation tensor (LCGDT)
+                Cp = C + e*dC
+                
+                # Calcualte the perturbed Related perturbed kinematic measures
+                # Get eigenvalues and vector for perturbed LCGDT
+                valp, vecp = eig(Cp)
+
+                # Get perturbed stretch tensor
+                Up = np.zeros((2,2))
+                for kk in range(2):
+                    Up += np.sqrt(valp[kk])*np.outer(vecp[:,kk], vecp[:,kk])
+
+                # Get perturbed deformation gradient
+                Fp = np.dot(Rot, Up)
+                
+                F = Fp
+
+                # Create a new Giraffe file
+                # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, Fp)
+                inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F)  # Send Fp here (Need to add other function?)
+
+                # Run Giraffe
+                print(f"Giraffe is running for aa = {aa}...")
+                opFilePath = runGiraffe(inp)
+
+                # Check if Giraffe has run
+                
+                # Check if the output file is empty using `checkGiraffeOutputs` function
+                flag_giraffe = checkGiraffeOutputs(opFilePath)  # size of text file
+
+                # Set a counter to limit the number of tries
+                counterGiraffe = 0
+
+                # Keep looping while the output file is empty and counter is less than 10
+                while flag_giraffe and counterGiraffe < 10:
+
+                    # Run the `runGiraffe` function and update the `opFilePath' or are are we running the same file?
+                    opFilePath = runGiraffe(inp)
+
+                    # Check the output file again
+                    flag_giraffe = checkGiraffeOutputs(opFilePath)
+
+                    # Increment the counter
+                    counterGiraffe += 1
+
+                # Check if flag_giraffe is False
+                if not flag_giraffe:
+                    print("Calculating stress and dsde")
+                            
+                else:
+                    # If flag_giraffe is True, print message and exit program
+                    print("File is still empty after 10 tries.")
+                    exit()   
+
+                # Get the stress from Giraffe outputs
+                stresspm = giraffeStress(Lxx, Lyy, t, inp)
+
+                # Convert the stress measure
+                stresspm = np.dot(Fp, stresspm.T)                           
+                    
+                # Get the numerical tangent
+                Dnumerical[0,aa] = (2/e)*(stresspm[0,0] - stress[0,0])
+                Dnumerical[1,aa] = (2/e)*(stresspm[1,1] - stress[1,1])
+                Dnumerical[2,aa] = (2/e)*(stresspm[0,1] - stress[0,1])
+
+                # Delete the Giraffe case folder
+                print("Task completed and now deleting folder...")
+                shutil.rmtree(folder)                                                # WIP Not removing folder
+                print("folder deleted...")
+
+            # Convert the obtained numerical tangent to the form
+            # usable by this code 
+            dsde = Voigt2normal(Dnumerical) 
+
+            print(dsde)
+
+   
         # Compute the element stiffness
 
         for a in range(nelnodes):
