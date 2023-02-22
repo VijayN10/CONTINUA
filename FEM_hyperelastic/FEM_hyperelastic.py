@@ -1100,11 +1100,11 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 # Get perturbed deformation gradient
                 Fp = np.dot(Rot, Up)
                 
-                F = Fp
+                # F = Fp  # TBC
 
                 # Create a new Giraffe file
-                # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, Fp)
-                inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F)  # Send Fp here (Need to add other function?)
+                inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, Fp)
+                # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F)  # Send Fp here (Need to add other function?)
 
                 # Run Giraffe
                 print(f"Giraffe is running for aa = {aa}...")

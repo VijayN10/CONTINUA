@@ -148,7 +148,7 @@ def giraffeInputGenerator(rvetype, name):
 
     # Initialize disp and calculate the displacement
     # of the ends of the beams
-    disp = np.zeros(((nx + ny) * 2,2))
+    disp = np.zeros(((nx + ny) * 2, 2))
     disp[:,0] = alpha1*X[:,0] + alpha2*X[:,1]
     disp[:,1] = alpha3*X[:,0] + alpha4*X[:,1]
 
@@ -156,7 +156,7 @@ def giraffeInputGenerator(rvetype, name):
 
     displacement_block = []
 
-    for i in range(1, (nx * ny * 2) + 1):
+    for i in range(1, ((nx + ny) * 2) + 1):
         block = "\n\nNodalDisplacement {} NodeSet {} CS 125 NTimes 2\n//Time UX UY UZ ROTX ROTY ROTZ\n0\t0\t0\t0\t0\t0\t0\n1\t{}\t{}\t0\t0\t0\t0".format(i, i + 4, disp[i-1][0], disp[i-1][1])
         displacement_block.append(block)
 
@@ -181,8 +181,8 @@ def giraffeInputGenerator(rvetype, name):
 
     # Displacement block
 
-        file.write("\n\nDisplacements {}\n\n".format(nx * ny * 2))
-        for i in range(nx * ny * 2):
+        file.write("\n\nDisplacements {}\n\n".format((nx + ny) * 2))
+        for i in range((nx + ny) * 2):
             file.write(displacement_block[i])
 
 
