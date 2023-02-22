@@ -459,9 +459,11 @@ else:
 # Get the stress from Giraffe outputs
 stress = giraffeStress(Lxx, Lyy, t)
 
+#%%
 
+shutil.rmtree(folder)                  # Can we delete this folder?
 
-
+#%%
 ## STEP 01
 
 # # Convert to the right stress measures          # WIP
@@ -531,11 +533,15 @@ for aa in range(3):
 
     # Get perturbed deformation gradient
     Fp = np.dot(Rot, Up)
+    
+    F = Fp
 
     # Create a new Giraffe file
-    inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, Fp)  # Send Fp here (Need to add other function?)
+    # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, Fp)
+    inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F)  # Send Fp here (Need to add other function?)
 
     # Run Giraffe
+    print(f"Giraffe is running for aa = {aa}...")
     opFilePath = runGiraffe(inp)
 
     # Check if Giraffe has run
@@ -579,15 +585,16 @@ for aa in range(3):
     Dnumerical[2,aa] = (2/e)*(stresspm[0,1] - stress[0,1])
 
     # Delete the Giraffe case folder
+    print("Task completed and now deleting folder...")
     shutil.rmtree(folder)                                                # WIP Not removing folder
-
+    print("folder deleted...")
 
 # Convert the obtained numerical tangent to the form
 # usable by this code 
 dsde = Voigt2normal(Dnumerical) 
 
-
-
+#%%
+print(dsde)
 
 #%% 
 ######################################################################################################################################################
