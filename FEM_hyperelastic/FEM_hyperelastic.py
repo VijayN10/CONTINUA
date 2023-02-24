@@ -47,8 +47,9 @@ import shutil
 # Total no. material parameters and list of parameters
 
 nprops = 2
-materialprops = np.array([[2], [5]])    # materialprops[mu1,K1]      # Python first position is 0 --> change in all code
-                                        # 2 implies multiscale, 5 implies number of rves
+materialprops = np.array([[2], [1]])    # materialprops[mu1,K1]      # Python first position is 0 --> change in all code
+                                        # first row implies multiscale, Second row implies type of RVE
+                                    
 # mu1 = 1
 # k1 = 10
 model = materialprops[0][0]
@@ -99,9 +100,8 @@ name = "tex"
 def giraffeInputGenerator(rvetype, name, F):
 
     # # Loop to generate file for each RVE          # Need to check
-
-    # for rr in range(rvetype):                      
-    rr = 0
+                     
+    rr = rvetype  
 
     # Create new folder with name of .inp file
     inp = name + '_' + str(rr)                       # inp = tex_0
@@ -123,15 +123,9 @@ def giraffeInputGenerator(rvetype, name, F):
         for i, line in enumerate(file):
             X[i] = [float(x) for x in line.strip().split()]
     
-    # Deformation gradient
-
-    # Assumption
-    # F = np.array([[1.2, 0.2],     # Deleted from here and added as arguments
-    #             [0.2, 1.2]]) 
-    # Comment F after adding in loop
-
-    # To calculate deformation gradient at each integration point :
-    # Loop to be added 
+    # Deformation gradient F
+    # F = np.array([[1.2, 0.2],   # Assumption used for testing this function
+    #             [0.2, 1.2]])
 
     # Get the strain from the deformation gradient
     strain = F - np.eye(2)
