@@ -93,26 +93,6 @@ name = "tex"
 
 ######################################################################################################################################################
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-######################################################################################################################################################
-
-
 # To create Giraffe input file 
 # It creates new folder (with the same name of Giaffe input file) at location of executables. 
 # The folder contains the created file.
@@ -953,7 +933,6 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
             inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F) 
 
             # Run Giraffe
-            print(f"Giraffe is running to get stess for intpt = {intpt}...")
             opFilePath = runGiraffe(inp)
 
             # Check if Giraffe has run
@@ -988,12 +967,8 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
             # Get the stress from Giraffe outputs
             stress = giraffeStress(Lxx, Lyy, t, inp)
 
-
-            # print("Task completed and now deleting folder...")
             shutil.rmtree(folder)        # Deleting the folder         
-            # print("folder deleted...")
-            
-            
+  
             ## STEP 01
 
             # # Convert to the right stress measures          # WIP
@@ -1071,7 +1046,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F)  # Send Fp here (Need to add other function?)
 
                 # Run Giraffe
-                print(f"Giraffe is running to get stresspm for intpt = {intpt} and aa = {aa}...")
+                print(f"Giraffe is running for aa = {aa}...")
                 opFilePath = runGiraffe(inp)
 
                 # Check if Giraffe has run
@@ -1115,15 +1090,15 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 Dnumerical[2,aa] = (2/e)*(stresspm[0,1] - stress[0,1])
 
                 # Delete the Giraffe case folder
-                # print("Task completed and now deleting folder...")
+                print("Task completed and now deleting folder...")
                 shutil.rmtree(folder)                                                # WIP Not removing folder
-                # print("folder deleted...")
+                print("folder deleted...")
 
             # Convert the obtained numerical tangent to the form
             # usable by this code 
             dsde = Voigt2normal(Dnumerical) 
 
-            # print(dsde)
+            print(dsde)
 
    
         # Compute the element stiffness
@@ -1486,12 +1461,10 @@ def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, n
 
 #######
 
-# # PlotMesh untility has not added
+
 # infile = "hyperelastic_quad4.txt"
 # infile = open('hyperelastic_quad4.txt', 'r')
-
-# # Commented outfile for boosting 
-# outfile = open('FEM_results.txt', 'w')
+outfile = open('FEM_results.txt', 'w')
 
 # nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads = read_input_file("hyperelastic_quad4.txt")
 
@@ -1581,14 +1554,12 @@ for step in range(1, nsteps+1):
 
         print(f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}')
     
-    # # Commented to boost the speed
-    # outfile.write(f'\n\n Step {step} Load {loadfactor}\n')
+    outfile.write(f'\n\n Step {step} Load {loadfactor}\n')
 
-    # # Commented to boost the speed
-    # print_results(outfile, 
-    #     nprops,materialprops,ncoord,ndof,nnode,coords, 
-    #     nelem,maxnodes,connect,nelnodes,elident, 
-    #     nfix,fixnodes,ndload,dloads,w)
+    print_results(outfile, 
+        nprops,materialprops,ncoord,ndof,nnode,coords, 
+        nelem,maxnodes,connect,nelnodes,elident, 
+        nfix,fixnodes,ndload,dloads,w)
     
     # Store traction and displacement for plotting later
     forcevdisp[1,step] = loadfactor*dloads[2,0]
@@ -1604,12 +1575,12 @@ plt.show()
 #
 # Create a plot of the deformed mesh
 
-# # Commented to boost the speed
-# defcoords = np.zeros((ndof,nnode))
-# scalefactor = 1.0
-# for i in range(nnode):
-#     for j in range(ndof):
-#         defcoords[j,i] = coords[j,i] + scalefactor*w[ndof*(i-1)+j]
+
+defcoords = np.zeros((ndof,nnode))
+scalefactor = 1.0
+for i in range(nnode):
+    for j in range(ndof):
+        defcoords[j,i] = coords[j,i] + scalefactor*w[ndof*(i-1)+j]
 
 # title_string ="Hyperelastic"
 
