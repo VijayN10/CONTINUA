@@ -95,18 +95,27 @@ name = "tex"
 
 
 
+with open("Giraffe/RVE_data/grfTop" + str(rvetype) + ".txt", "r") as file:
+    top = file.read()
 
+with open("Giraffe/RVE_data/grfBottom" + str(rvetype) + ".txt", "r") as file:
+    bottom = file.read()
 
+# Read RVE data file
+with open("Giraffe/RVE_data/rve{}.txt".format(rvetype), "r") as file:
+    data = [float(x) for x in file.read().split()]
+    Lxx, Lyy, t, nx, ny = data[:5]
+    nx = int(nx)
+    ny = int(ny)
 
+# Get the nodal coordinates of the ends of the beams
 
+X = np.zeros(((nx + ny) * 2, 3))
 
-
-
-
-
-
-
-
+# Read the nodedata text files from data folder
+with open("Giraffe/RVE_data/nodedata" + str(rvetype)  + ".txt", "r") as file:
+    for i, line in enumerate(file):
+        X[i] = [float(x) for x in line.strip().split()]
 
 
 
@@ -117,7 +126,7 @@ name = "tex"
 # It creates new folder (with the same name of Giaffe input file) at location of executables. 
 # The folder contains the created file.
 
-def giraffeInputGenerator(rvetype, name, F):
+def giraffeInputGenerator(rvetype, name, F, nx, ny, X):
 
     # Consider rvetype                 
     rr = rvetype  
@@ -128,20 +137,6 @@ def giraffeInputGenerator(rvetype, name, F):
     folder = "Giraffe/" + inp                              # folder = E:/Softwares/01/Giraffe/tex_0
     os.makedirs("Giraffe/" + inp, exist_ok=True)               # Creates tex_0 folder
 
-    # Take inputs from text file and assign following variables 
-    with open("Giraffe/RVE_data/rve"+ str(rr)  +".txt", "r") as file:
-        Lxx, Lyy, t, nx, ny = [float(x) for x in file.read().split()]
-        nx = int(nx)
-        ny = int(ny)
-
-    # Get the nodal coordinates of the ends of the beams
-
-    X = np.zeros(((nx + ny) * 2, 3))
-
-    # Read the nodedata text files from data folder
-    with open("Giraffe/RVE_data/nodedata" + str(rr)  + ".txt", "r") as file:
-        for i, line in enumerate(file):
-            X[i] = [float(x) for x in line.strip().split()]
     
     # Deformation gradient F
     # F = np.array([[1.2, 0.2],   # Assumption used for testing this function
@@ -162,7 +157,6 @@ def giraffeInputGenerator(rvetype, name, F):
     # print(f'alpha = {alpha}')
 
 
-
     # Initialize disp and calculate the displacement
     # of the ends of the beams
     disp = np.zeros(((nx + ny) * 2, 2))
@@ -181,15 +175,6 @@ NodalDisplacement {} NodeSet {} CS 125 NTimes 2
 1\t{}\t{}\t0\t0\t0\t0\n
 """).format(i, i + 4, disp[i-1][0], disp[i-1][1])
         displacement_block.append(block)
-
-
-    # Read the top portion from grfTop{i}.txt
-    with open("Giraffe/RVE_data/grfTop" + str(rr)  + ".txt", "r") as top_file:
-        top = top_file.read()
-
-    # Read the bottom portion from grfBottom{i}.txt
-    with open("Giraffe/RVE_data/grfBottom" + str(rr) + ".txt", "r") as bottom_file:
-        bottom = bottom_file.read()
 
   
     # Open the file for writing
@@ -213,7 +198,7 @@ NodalDisplacement {} NodeSet {} CS 125 NTimes 2
         file.write(bottom)
 
 
-    return inp, Lxx, Lyy, t, folder
+    return inp, folder
 
 ######################################################################################################################################################
 
@@ -950,7 +935,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
         elif model == 2:
             
             # Create a new Giraffe file
-            inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F) 
+            inp, folder = giraffeInputGenerator(rvetype, name, F, nx, ny, X)
 
             # Run Giraffe
             print(f"Giraffe is running to get stess for intpt = {intpt}...")
@@ -1067,8 +1052,8 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                 # F = Fp  # TBC
 
                 # Create a new Giraffe file
-                inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, Fp)
-                # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F)  # Send Fp here (Need to add other function?)
+                inp, folder = giraffeInputGenerator(rvetype, name, Fp, nx, ny, X)
+                # inp, Lxx, Lyy, t, folder = giraffeInputGenerator(rvetype, name, F, Lxx, Lyy, t, nx, ny, X)  # Send Fp here (Need to add other function?)
 
                 # Run Giraffe
                 print(f"Giraffe is running to get stresspm for intpt = {intpt} and aa = {aa}...")
