@@ -58,12 +58,13 @@ MonitorNodeSets 1 2 3 4
 PostFiles
 MagFactor 1
 WriteMesh 0
-WriteRenderMesh 0
+WriteRenderMesh 1
 WriteRigidContactSurfaces 0
-WriteFlexibleContactSurfaces 0
+WriteFlexibleContactSurfaces 1
 WriteForces 0
 WriteConstraints 0
-WriteSpecialConstraints 0
-WriteContactForces 0
+WriteSpecialConstraints 1
+WriteContactForces 1
 WriteRenderRigidBodies 0
 WriteRenderParticles 0
+

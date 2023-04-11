@@ -1,5 +1,6 @@
 #%%
 
+from numba import jit
 import numpy as np
 from numpy.linalg import eig, inv
 import matplotlib.pyplot as plt
@@ -126,6 +127,7 @@ with open("Giraffe/RVE_data/nodedata" + str(rvetype)  + ".txt", "r") as file:
 # It creates new folder (with the same name of Giaffe input file) at location of executables. 
 # The folder contains the created file.
 
+@jit
 def giraffeInputGenerator(rvetype, name, F, nx, ny, X):
 
     # Consider rvetype                 
@@ -203,7 +205,7 @@ NodalDisplacement {} NodeSet {} CS 125 NTimes 2
 ######################################################################################################################################################
 
 # Run giraffe
-
+@jit
 def runGiraffe(inp):
 
     # path : E:/Softwares/01/Giraffe/
@@ -264,7 +266,7 @@ def runGiraffe(inp):
 # The function returns a boolean value indicating whether the file is empty or not. 
 # If the file is empty, os.path.getsize('.txt') will return 0 and checkGiraffeOutputs will return True. 
 # If the file is non-empty, os.path.getsize('.txt') will return a value greater than 0 and checkGiraffeOutputs will return False.
-
+@jit
 def checkGiraffeOutputs(opFilePath):
 
     if os.path.getsize(opFilePath) == 0:
@@ -278,7 +280,7 @@ def checkGiraffeOutputs(opFilePath):
 
 # def giraffeStress(opFilePath):
 
-
+@jit
 def giraffeStress(Lxx, Lyy, t, inp):
       
     # # Changing t temporarily    # Ask
@@ -329,7 +331,7 @@ def giraffeStress(Lxx, Lyy, t, inp):
 
 ######################################################################################################################################################
 
-
+@jit
 def Voigt2normal(Dnumerical):
     
     dsde = np.zeros((2,2,2,2))
@@ -368,7 +370,7 @@ def Voigt2normal(Dnumerical):
 #
 #    Computes material stiffness tensor C_{ijkl} 
 #    Currently coded either for plane strain or general 3D.
-
+@jit
 def materialstiffness(ndof, ncoord, B, J, materialprops):
     mu1 = materialprops[0]
     K1 = materialprops[1]
@@ -392,7 +394,7 @@ def materialstiffness(ndof, ncoord, B, J, materialprops):
 #================= Stress ==================================
 #
 #   Computes stress sigma_{ij} given B_{ij}
-
+@jit
 def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
   stress = np.zeros((ndof,ncoord))
   dl = [[1,0,0],[0,1,0],[0,0,1]]
@@ -414,7 +416,7 @@ def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
 #
 #   Defines the number of integration points:be used for
 #   each element type
-
+@jit
 def numberofintegrationpoints(ncoord, nelnodes, elident):
     if (ncoord == 1):
         n = nelnodes
@@ -443,7 +445,7 @@ def numberofintegrationpoints(ncoord, nelnodes, elident):
 #====================== INTEGRATION POINTS ==================================
 #
 #   Defines positions of integration points
-
+@jit
 def integrationpoints(ncoord, nelnodes, npoints, elident):
     # xi = np.zeros((npoints,ncoord))
     xi=np.zeros((ncoord,npoints))
@@ -527,7 +529,7 @@ def integrationpoints(ncoord, nelnodes, npoints, elident):
 #================= INTEGRATION WEIGHTS ==================================
 #
 #   Defines integration weights w_i
-
+@jit
 def integrationweights(ncoord, nelnodes, npoints, elident):
 
     w = [0 for i in range(npoints)]
@@ -595,7 +597,7 @@ def integrationweights(ncoord, nelnodes, npoints, elident):
 #================= SHAPE FUNCTIONS ==================================
 #
 #        Calculates shape functions for various element types
-
+@jit
 def shapefunctions(nelnodes, ncoord, elident, xi):
     
     N = np.zeros((nelnodes,1))
@@ -654,7 +656,7 @@ def shapefunctions(nelnodes, ncoord, elident, xi):
 #
 #================= SHAPE FUNCTION DERIVATIVES ======================
 #
-
+@jit
 def shapefunctionderivs(nelnodes,ncoord,elident,xi):
 
     dNdxi = np.zeros((nelnodes,ncoord))
@@ -713,7 +715,7 @@ def shapefunctionderivs(nelnodes,ncoord,elident,xi):
 #
 #================= ELEMENT RESIDUAL VECTOR ================================
 #
-
+@jit
 def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
    
 #  Assemble the element residual force
@@ -824,7 +826,7 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
 #
 #================= ELEMENT STIFFNESS MATRIX ================================
 #
-
+@jit
 def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
     
 #  Assemble the element stiffness
@@ -1133,7 +1135,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
 #   This procedure returns the number of nodes on each element face
 #   for various element types.  This info is needed for computing
 #   the surface integrals associated with the element traction vector
-
+@jit
 def nfacenodes(ncoord,nelnodes):
     if (ncoord == 2): 
         if (nelnodes == 3 or nelnodes == 4):
@@ -1158,7 +1160,7 @@ def nfacenodes(ncoord,nelnodes):
 #    This procedure returns the list of nodes on an element face
 #    The nodes are ordered so that the element face forms either
 #    a 1D line element or a 2D surface element for 2D or 3D problems
-#
+@jit
 def facenodes(ncoord,nelnodes,elident,face):
     i3 = [2,3,1]
     i4 = [2,3,4,1]
@@ -1186,7 +1188,7 @@ def facenodes(ncoord,nelnodes,elident,face):
 #
 #====================== ELEMENT DISTRIBUTED LOAD VECTOR ==============
 #
-
+@jit
 def eldload(ncoord, ndof, nfacenodes, elident, coords, traction):
     npoints = numberofintegrationpoints(ncoord-1, nfacenodes, elident)
     xi =  np.zeros((ncoord-1,1))
@@ -1225,7 +1227,7 @@ def eldload(ncoord, ndof, nfacenodes, elident, coords, traction):
 #
 #====================== Assemble the global residual vector =================
 #
-
+@jit
 def globalresidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
     
     # Assemble the global stiffness matrix
@@ -1264,7 +1266,7 @@ def globalresidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnod
 #
 #====================== Assemble the global stiffness matrix =================
 #
-
+@jit
 def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
     
     # Assemble the global stiffness matrix
@@ -1304,7 +1306,7 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
 #
 #===================== Assemble the global traction vector =============
 #
-
+@jit
 def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, connect, dloads, dofs):
     r = np.zeros((ndof*nnodes, 1))
     traction = np.zeros((ndof, 1))
@@ -1342,7 +1344,7 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
 
 ######################################################################################################################################################
 
-
+@jit
 def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads, dofs):
 
     outfile.write("Nodal Displacements: \n")
