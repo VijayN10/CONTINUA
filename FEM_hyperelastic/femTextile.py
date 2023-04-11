@@ -1448,33 +1448,32 @@ def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, n
                 print("{:5d} {:7.4f} {:7.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f} {:9.4f}".format(intpt, x[0][0], x[1][0], B[0][0], B[1][1], B[0][1], stress[0][0], stress[1][1], stress[0][1], F[0][0], F[1][0], F[1][0], F[1][1] ), file=outfile)
 
 
+# Plot Mesh
+def plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, color):
+    f2D_3 = np.array([1,2,3])
+    f2D_4 = np.array([1,2,3,4])
+    f2D_6 = np.array([1,4,2,5,3,6])
+    f2D_8 = np.array([1,5,2,6,3,7,4,8])
 
-# def plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, color):
-#     f2D_3 = [1, 2, 3]
-#     f2D_4 = [1, 2, 3, 4]
-#     f2D_6 = [1, 4, 2, 5, 3, 6]
-#     f2D_8 = [1, 5, 2, 6, 3, 7, 4, 8]
-#     plt.hold(True)
-#     if ncoord == 2:  # Plot a 2D mesh
-#         for lmn in range(nelem):
-#             x = []
-#             for i in range(nelnodes[lmn]):
-#                 x.append([coords[0][connect[i][lmn]], coords[1][connect[i][lmn]]])
-#             plt.scatter([point[0] for point in x], [point[1] for point in x], marker='o', color='r')
-#             if nelnodes[lmn] == 3:
-#                 poly = Polygon(x, closed=True, fill=False, edgecolor=color)
-#                 plt.gca().add_patch(poly)
-#             elif nelnodes[lmn] == 4:
-#                 poly = Polygon(x, closed=True, fill=False, edgecolor=color)
-#                 plt.gca().add_patch(poly)
-#             elif nelnodes[lmn] == 6:
-#                 poly = Polygon(x, closed=True, fill=False, edgecolor=color)
-#                 plt.gca().add_patch(poly)
-#             elif nelnodes[lmn] == 8 or nelnodes[lmn] == 9:
-#                 poly = Polygon(x, closed=True, fill=False, edgecolor=color)
-#                 plt.gca().add_patch(poly)
-#     plt.axis('equal')
-#     plt.hold(False)
+    fig, ax = plt.subplots()
+    for lmn in range(nelem):
+        x = []
+        for i in range(nelnodes):
+            x.append(coords[:, connect[i, lmn]-1])
+        x = np.array(x)
+        ax.scatter(x[:, 0], x[:, 1], color='r', edgecolors='none')
+        if nelnodes == 3:
+            ax.add_patch(Polygon(x[f2D_3-1], facecolor='none', edgecolor=color))
+        elif nelnodes == 4:
+            ax.add_patch(Polygon(x[f2D_4-1], facecolor='none', edgecolor=color))
+        elif nelnodes == 6:
+            ax.add_patch(Polygon(x[f2D_6-1], facecolor='none', edgecolor=color))
+        elif nelnodes == 8 or nelnodes == 9:
+            ax.add_patch(Polygon(x[f2D_8-1], facecolor='none', edgecolor=color))
+    ax.autoscale(True)
+    ax.set_aspect('equal')
+    plt.show()
+
 
 #######
 
@@ -1482,8 +1481,8 @@ def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, n
 # infile = "hyperelastic_quad4.txt"
 # infile = open('hyperelastic_quad4.txt', 'r')
 
-# # Commented outfile for boosting 
-# outfile = open('FEM_results.txt', 'w')
+# Commented outfile for boosting 
+outfile = open('FEM_results.txt', 'w')
 
 # nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads = read_input_file("hyperelastic_quad4.txt")
 
@@ -1573,14 +1572,14 @@ for step in range(1, nsteps+1):
 
         print(f'Iteration number {nit} Correction {err1} Residual {err2} tolerance {tol}')
     
-    # # Commented to boost the speed
-    # outfile.write(f'\n\n Step {step} Load {loadfactor}\n')
+    # Commented to boost the speed
+    outfile.write(f'\n\n Step {step} Load {loadfactor}\n')
 
-    # # Commented to boost the speed
-    # print_results(outfile, 
-    #     nprops,materialprops,ncoord,ndof,nnode,coords, 
-    #     nelem,maxnodes,connect,nelnodes,elident, 
-    #     nfix,fixnodes,ndload,dloads,w)
+    # Commented to boost the speed
+    print_results(outfile, 
+        nprops,materialprops,ncoord,ndof,nnode,coords, 
+        nelem,maxnodes,connect,nelnodes,elident, 
+        nfix,fixnodes,ndload,dloads,w)
     
     # Store traction and displacement for plotting later
     forcevdisp[1,step] = loadfactor*dloads[2,0]
@@ -1593,28 +1592,27 @@ plt.show()
 
 
 #================================= POST-PROCESSING =================================
-#
-# Create a plot of the deformed mesh
 
-# # Commented to boost the speed
-# defcoords = np.zeros((ndof,nnode))
-# scalefactor = 1.0
-# for i in range(nnode):
-#     for j in range(ndof):
-#         defcoords[j,i] = coords[j,i] + scalefactor*w[ndof*(i-1)+j]
+# plot initial mesh
+plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, 'g')
 
-# title_string ="Hyperelastic"
+# calculate deformed coordinates
+defcoords = np.zeros((ndof, nnode))
+scalefactor = 1.0
+for i in range(nnode):
+    for j in range(ndof):
+        defcoords[j, i] = coords[j, i] + scalefactor * w[ndof * (i - 1) + j]
 
-# plt.scatter(coords[0],coords[1],s=20,color='m',marker='X',label='Undeformed coordinates')
-# plt.scatter(defcoords[0],defcoords[1],s=10,color='r',label='Deformed coordinates')
-# plt.title(title_string)
-# plt.legend()
+# plot deformed mesh on top of initial mesh
+
+# # create figure object
+# fig = plt.figure()
+
+# # plot initial mesh
+# plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, 'g')
+
+# # plot deformed mesh on top of initial mesh
+# plotmesh(defcoords, ncoord, nnode, connect, nelem, elident, nelnodes, 'r')
+
+# # show plot
 # plt.show()
-
-                    
-# plt.figure()
-# # plotmesh(coords,ncoord,nnode,connect,nelem,elident,nelnodes,'g')
-# plt.hold(True)
-# # plotmesh(defcoords,ncoord,nnode,connect,nelem,elident,nelnodes,'r')
-
-# plt.close(outfile)
