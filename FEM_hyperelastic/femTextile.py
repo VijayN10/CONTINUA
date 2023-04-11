@@ -47,7 +47,7 @@ import shutil
 # Total no. material parameters and list of parameters
 
 nprops = 2
-materialprops = np.array([[1], [10]])    # materialprops[mu1,K1]      # Python first position is 0 --> change in all code
+materialprops = np.array([[1], [10]])                                        # materialprops = np.array([[2], [1]])    # materialprops[mu1,K1]      # Python first position is 0 --> change in all code
                                         # first row implies multiscale, Second row implies type of RVE
                                     
 # mu1 = 1
@@ -59,22 +59,18 @@ if model == 1 :
     k1 = materialprops[1][0]
 elif model == 2:
     rvetype = materialprops[1][0]
-    
-
-print(model)
 
 # no. coords (1:3), no. DOF, no. nodes and nodal coordinates
 
 ncoord = 2
 ndof = 2
-nnode = 9
+nnode = 4
 
-# coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])
 coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])
 
 # No. elements and connectivity
 
-nelem = 4
+nelem = 1
 maxnodes = 4
 nelnodes = 4
 elident = np.array([[1]])                 # elident = np.array([[1]])
@@ -83,8 +79,7 @@ connect = np.array([[1],[2],[3],[4]])     # connect = np.array([[1],[2],[3],[4]]
 # No. nodes with prescribed displacements, with the prescribed displacements
 
 nfix = 4
-# fixnodes = np.array([[1, 1, 2, 4],[1, 2, 2, 1],[0, 0, 0, 0]])
-fixnodes = np.array([[1, 1, 3, 4],[1, 2, 2, 1],[0, 0, 0, 0]])
+fixnodes = np.array([[1, 1, 2, 4],[1, 2, 2, 1],[0, 0, 0, 0]])
 
 # No. loaded element faces, with the loads
 
@@ -98,8 +93,8 @@ name = "tex"
 
 ######################################################################################################################################################
 
-if model == 2:
 
+if model ==2:
     with open("Giraffe/RVE_data/grfTop" + str(rvetype) + ".txt", "r") as file:
         top = file.read()
 
@@ -910,7 +905,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
                     F[i][j] += displacement[i][a] * dNdx[a][j]
         
                     
-        with open('F_values.txt', 'a') as file:  
+        with open('F_values.txt', 'a') as file:
             for row in F:
                 for val in row:
                     file.write(f'{val:.6f} ')
