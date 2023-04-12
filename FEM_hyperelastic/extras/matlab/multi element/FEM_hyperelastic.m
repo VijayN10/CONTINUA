@@ -1432,7 +1432,7 @@ fprintf(outfile,'Nodal Displacements: \n');
 
     fprintf(outfile,' \n Element; %d ',lmn);
     if (ncoord == 2)   
-    fprintf(outfile,'  \n int pt    Coords          B_11      B_22     B_12      s_11       s_22      s_12 \n');
+    fprintf(outfile,'  \n int pt    Coords          B_11      B_22     B_12      s_11       s_22      s_12      F_11      F_12      F_21      F_22 \n');
 
     elseif (ncoord == 3) 
     fprintf(outfile,'\n int pt         Coords            B_11      B_22     B_33      B_12       B_13      B_23      s_11      s_22      s_33      s_12      s_13      s_23 \n');
@@ -1548,8 +1548,8 @@ fprintf(outfile,'Nodal Displacements: \n');
       
       if (ncoord == 2) 
 
-      fprintf(outfile,'%5d %7.4f %7.4f %9.4f %9.4f %9.4f %9.4f %9.4f %9.4f \n', ...
-        intpt,x(1),x(2),B(1,1),B(2,2),B(1,2),stress(1,1),stress(2,2),stress(1,2));
+      fprintf(outfile,'%5d %7.4f %7.4f %9.4f %9.4f %9.4f %9.4f %9.4f %9.4f %9.4f %9.4f %9.4f %9.4f \n', ...
+        intpt,x(1),x(2),B(1,1),B(2,2),B(1,2),stress(1,1),stress(2,2),stress(1,2),F(1,1),F(1,2),F(2,1),F(2,2));
 
 
       elseif (ncoord == 3) 
