@@ -64,27 +64,33 @@ elif model == 2:
 
 ncoord = 2
 ndof = 2
-nnode = 4
+nnode = 9
 
-coords = np.array([[0, 1, 1, 0],[0, 0, 1, 1]])
+coords = np.array([[0, 1, 2, 0, 1, 2, 0, 1, 2],[0, 0, 0, 1, 1, 1, 2, 2, 2]])
 
 # No. elements and connectivity
 
-nelem = 1
+nelem = 4
 maxnodes = 4
 nelnodes = 4
-elident = np.array([[1]])                 # elident = np.array([[1]])
-connect = np.array([[1],[2],[3],[4]])     # connect = np.array([[1],[2],[3],[4]])
+elident = np.array([[1],[2],[3],[4]])                 # elident = np.array([[1]])
+connect = np.array([[1, 2, 5, 4],
+                    [2, 3, 6, 5],
+                    [5, 6, 9, 8],
+                    [4, 5, 8, 7]])  
+# connect = np.array([[1],[2],[3],[4]])
 
 # No. nodes with prescribed displacements, with the prescribed displacements
 
-nfix = 4
-fixnodes = np.array([[1, 1, 2, 4],[1, 2, 2, 1],[0, 0, 0, 0]])
+nfix = 6
+fixnodes = np.array([[1, 1, 2, 3, 4, 7],[1, 2, 2, 2, 1, 1],[0, 0, 0, 0, 0, 0]])
 
 # No. loaded element faces, with the loads
 
-ndload = 1
-dloads = np.array([[1],[2],[3],[0]])      # dloads = np.array([[1],[2],[3],[0]])
+ndload = 2
+dloads = np.array([ [2, 2, 3, 0],
+                    [3, 2, 3, 0] ])     
+# dloads = np.array([[1],[2],[3],[0]])
 
 
 # Name for the Giraffe input file (without identification number)
@@ -1336,7 +1342,7 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
         # Compute the element load vector
 
         for i in range(ndof):
-            traction[i] = dloads[i+2, load]
+            traction[i] = dloads[i, load]
         rel = eldload(ncoord, ndof, nfnodes, ident, lmncoord, traction)
 
         # Assemble the element load vector into global vector
@@ -1582,37 +1588,23 @@ for step in range(1, nsteps+1):
         nfix,fixnodes,ndload,dloads,w)
     
     # Store traction and displacement for plotting later
-    forcevdisp[1,step] = loadfactor*dloads[2,0]
+    forcevdisp[1,step] = loadfactor*dloads[1,0]
     forcevdisp[0,step] = w[2][0]
+    
+    # calculate deformed coordinates
+    defcoords = np.zeros((ndof, nnode))
+    scalefactor = 1.0
+    for i in range(nnode):
+        for j in range(ndof):
+            defcoords[j, i] = coords[j, i] + scalefactor * w[ndof * (i - 1) + j]
+
+
+#================================= POST-PROCESSING =================================
 
 plt.plot(forcevdisp[0,:], forcevdisp[1,:], 'r', linewidth=3)
 plt.xlabel('Displacement', fontsize=16)
 plt.ylabel('Force', fontsize=16)
 plt.show()
 
-
-#================================= POST-PROCESSING =================================
-
-# plot initial mesh
 plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, 'g')
-
-# calculate deformed coordinates
-defcoords = np.zeros((ndof, nnode))
-scalefactor = 1.0
-for i in range(nnode):
-    for j in range(ndof):
-        defcoords[j, i] = coords[j, i] + scalefactor * w[ndof * (i - 1) + j]
-
-# plot deformed mesh on top of initial mesh
-
-# # create figure object
-# fig = plt.figure()
-
-# # plot initial mesh
-# plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, 'g')
-
-# # plot deformed mesh on top of initial mesh
 # plotmesh(defcoords, ncoord, nnode, connect, nelem, elident, nelnodes, 'r')
-
-# # show plot
-# plt.show()
