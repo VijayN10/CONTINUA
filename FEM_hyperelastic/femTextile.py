@@ -66,31 +66,35 @@ ncoord = 2
 ndof = 2
 nnode = 9
 
-coords = np.array([[0, 1, 2, 0, 1, 2, 0, 1, 2],[0, 0, 0, 1, 1, 1, 2, 2, 2]])
+coords = np.array([[0, 1, 2, 0, 1, 2, 0, 1, 2],
+                   [0, 0, 0, 1, 1, 1, 2, 2, 2]])
 
 # No. elements and connectivity
 
 nelem = 4
-maxnodes = 4
-nelnodes = 4
+maxnodes = 4 
+nelnodes = 4   
 elident = np.array([[1],[2],[3],[4]])                 # elident = np.array([[1]])
+
 connect = np.array([[1, 2, 5, 4],
                     [2, 3, 6, 5],
                     [5, 6, 9, 8],
-                    [4, 5, 8, 7]])  
-# connect = np.array([[1],[2],[3],[4]])
+                    [4, 5, 8, 7]])     # connect = np.array([[1],[2],[3],[4]])
 
 # No. nodes with prescribed displacements, with the prescribed displacements
 
 nfix = 6
-fixnodes = np.array([[1, 1, 2, 3, 4, 7],[1, 2, 2, 2, 1, 1],[0, 0, 0, 0, 0, 0]])
+fixnodes = np.array([[1, 1, 2, 3, 4, 7],
+                     [1, 2, 2, 2, 1, 1],
+                     [0, 0, 0, 0, 0, 0]])
 
 # No. loaded element faces, with the loads
 
 ndload = 2
-dloads = np.array([ [2, 2, 3, 0],
-                    [3, 2, 3, 0] ])     
-# dloads = np.array([[1],[2],[3],[0]])
+dloads = np.array([[2, 3],
+                   [2, 2],
+                   [3, 3],
+                   [0, 0]])      # dloads = np.array([[1],[2],[3],[0]])
 
 
 # Name for the Giraffe input file (without identification number)
@@ -1342,7 +1346,7 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
         # Compute the element load vector
 
         for i in range(ndof):
-            traction[i] = dloads[i, load]
+            traction[i] = dloads[i+2, load]
         rel = eldload(ncoord, ndof, nfnodes, ident, lmncoord, traction)
 
         # Assemble the element load vector into global vector
@@ -1588,7 +1592,7 @@ for step in range(1, nsteps+1):
         nfix,fixnodes,ndload,dloads,w)
     
     # Store traction and displacement for plotting later
-    forcevdisp[1,step] = loadfactor*dloads[1,0]
+    forcevdisp[1,step] = loadfactor*dloads[2,0]
     forcevdisp[0,step] = w[2][0]
     
     # calculate deformed coordinates

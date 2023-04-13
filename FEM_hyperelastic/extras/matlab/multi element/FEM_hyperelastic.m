@@ -125,6 +125,7 @@ plotmesh(coords,ncoord,nnode,connect,nelem,elident,nelnodes,'g');
 %        Solve for the correction
 %
          dw = K\b;
+         disp(dw);
 %
 %        Check convergence
 %
@@ -1408,7 +1409,7 @@ fprintf(outfile,'Nodal Displacements: \n');
    if (ndof == 2) 
      fprintf(outfile,' Node      Coords         u1       u2 \n');
      for i = 1:nnode
-      fprintf(outfile,'%3d %8.4f %8.4f %8.4f %8.4f\n', ...
+      fprintf(outfile,'%3d %8.4f %8.4f %8.4f %8.4f \n', ...
                                i,coords(1,i),coords(2,i),dofs(2*i-1),dofs(2*i));
      end
    elseif (ndof == 3) 
@@ -1476,14 +1477,14 @@ fprintf(outfile,'Nodal Displacements: \n');
 %     Compute the coords of the integration point
 %
       for i = 1:ncoord
-        disp(i);
+        % disp(i);
         x(i) = 0.;
         for a = 1:n
-          disp(a);
-          disp(lmncoord(i,a));
-          disp(N(a));
+          % disp(a);
+          % disp(lmncoord(i,a));
+          % disp(N(a));
           x(i) = x(i) + lmncoord(i,a)*N(a);
-          disp(x(i));
+          % disp(x(i));
         end
       end
 %
@@ -1523,7 +1524,8 @@ fprintf(outfile,'Nodal Displacements: \n');
             end
          end
       end
-%
+      disp(F);
+%       
 %     Compute Bbar and J
 %
       J = det(F);
