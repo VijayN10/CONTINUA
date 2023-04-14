@@ -1476,14 +1476,14 @@ fprintf(outfile,'Nodal Displacements: \n');
 %     Compute the coords of the integration point
 %
       for i = 1:ncoord
-        disp(i);
+        % disp(i);
         x(i) = 0.;
         for a = 1:n
-          disp(a);
-          disp(lmncoord(i,a));
-          disp(N(a));
+          % disp(a);
+          % disp(lmncoord(i,a));
+          % disp(N(a));
           x(i) = x(i) + lmncoord(i,a)*N(a);
-          disp(x(i));
+          % disp(x(i));
         end
       end
 %
