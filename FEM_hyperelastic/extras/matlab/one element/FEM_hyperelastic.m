@@ -1109,6 +1109,7 @@ function kel = elstif(ncoord,ndof,nelnodes,elident,coord,materialprops,displacem
 end
 
 
+
  %====================== No. nodes on element faces ================
 %
 %   This procedure returns the number of nodes on each element face
