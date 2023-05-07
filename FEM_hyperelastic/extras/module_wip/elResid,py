@@ -1,0 +1,108 @@
+import numpy as np
+
+
+def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
+   
+#  Assemble the element residual force
+#
+#    Arguments:
+#
+#      ncoord             No. coordinates (2 or 3 for 2D or 3D problem)
+#      ndof               No. degrees of freedom per node (often ndof = ncoord)
+#      nelnodes           No. nodes on the element
+#      elident            Element identifier (not used here - for future enhancements!)
+#      coords[i,a]        ith coord of ath node
+#      materialprops      Material properties passed on to constitutive procedures
+#      displacement[i,a]  ith displacement component at ath node
+#
+#   Local variables
+#      npoints            No. integration points
+#      xi[i,inpt]         ith local coord of integration point no. intpt
+#      w[intpt]           weight for integration point no. intpt
+#      N[a]               Shape function associated with ath node on element
+#      dNdxi[a,i]         Derivative of ath shape function wrt ith local coord
+#      dNdx[a,i]          Derivative of ath shape function wrt ith global coord
+#      dxdxi[i,j]         Derivative of ith global coord wrt jth local coord
+#      dxidx[i,j]         Derivative of ith local coord wrt jth global coord
+#      det                Determinant of jacobian
+#      strain[i,j]        strain_ij components
+#      stress[i,j]        stress_ij components
+#      r[row]             Residual vector
+   
+    npoints = numberOfIntegrationPoints(ncoord, nelnodes, elident)
+    dxdxi = np.zeros((ncoord, ncoord))
+    dxidx = np.zeros((ncoord, ncoord))
+    dNdxs = np.zeros((nelnodes, ncoord))
+    rel = np.zeros((ndof * nelnodes, 1))
+    xi = np.zeros((ncoord,npoints))
+    dNdx = np.zeros((nelnodes, ncoord))
+    F = np.zeros((ncoord,ncoord))
+
+# Set up integration points and weights
+    
+    xilist = integrationPoints(ncoord, nelnodes, npoints, elident)
+    w = integrationWeights(ncoord, nelnodes, npoints, elident)
+
+    # Loop over the integration points
+    for intpt in range(npoints):
+
+        # Compute shape functions and derivatives wrt local coords
+
+        for i in range(ncoord):
+            xi[i] = xilist[i][intpt]
+        N = shapeFunctions(nelnodes, ncoord, elident, xi)
+        dNdxi = shapeFunctionDerivs(nelnodes, ncoord, elident, xi)
+
+        # Compute the jacobian matrix and its determinant
+
+        for i in range(ncoord):
+            for j in range(ncoord):
+                dxdxi[i][j] = 0
+                for a in range(nelnodes):
+                    dxdxi[i][j] += coord[i][a] * dNdxi[a][j]
+        dxidx = np.linalg.inv(dxdxi)
+        dt = np.linalg.det(dxdxi)
+
+        # Convert shape function derivatives to derivatives wrt global coords
+
+        for a in range(nelnodes):
+            for i in range(ncoord):
+                dNdx[a][i] = 0
+                for j in range(ncoord):
+                    dNdx[a][i] += dNdxi[a][j] * dxidx[j][i]
+
+        # Compute the deformation gradients by differentiating displacements
+
+        for i in range(ncoord):
+            for j in range(ncoord):
+                F[i][j] = 0
+                if i == j:
+                    F[i][i] = 1
+                for a in range(nelnodes):
+                    F[i][j] += displacement[i][a] * dNdx[a][j]
+
+        # Compute Bbar and J
+
+        J = np.linalg.det(F)
+        B = np.dot(F, np.transpose(F))
+
+        # Convert shape function derivatives to derivatives wrt spatial coords
+
+        Finv = np.linalg.inv(F)
+        for a in range(nelnodes):
+            for i in range(ncoord):
+                dNdxs[a][i] = 0
+                for j in range(ncoord):
+                    dNdxs[a][i] += dNdx[a][j] * Finv[j][i]
+        
+        # Compute the stress
+
+        stress = kirchhoffStress(ndof,ncoord,B,J,materialprops)
+
+        # Compute the element residual
+
+        for a in range(nelnodes):
+            for i in range(ncoord):
+                for row in range(ndof):
+                    rel[row + a * ndof] += stress[row][i] * dNdxs[a][i] * w[intpt] * dt
+    return rel

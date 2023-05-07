@@ -65,37 +65,42 @@ elif model == 2:
 
 ncoord = 2
 ndof = 2
-nnode = 9
+nnode = 16
 
-coords = np.array([[0, 1, 2, 0, 1, 2, 0, 1, 2],
-                   [0, 0, 0, 1, 1, 1, 2, 2, 2]])
+coords = np.array([[0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3],
+                   [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]])
 
 # No. elements and connectivity
 
-nelem = 4
+nelem = 9
 maxnodes = 4 
 nelnodes = 4   
-elident = np.array([[1],[2],[3],[4]])                 # elident = np.array([[1]])
+elident = np.array([[1],[2],[3],[4],[5],[6],[7],[8],[9]])                 # elident = np.array([[1]])
 
-connect = np.array([[1, 2, 5, 4],
-                    [2, 3, 6, 5],
-                    [5, 6, 9, 8],
-                    [4, 5, 8, 7]])     # connect = np.array([[1],[2],[3],[4]])
+connect = np.array([[1, 2, 6, 5],
+                    [2, 3, 7, 6],
+                    [3, 4, 8 ,7],
+                    [7, 8, 12, 11],
+                    [6, 7, 11, 10],
+                    [5, 6, 10, 9],
+                    [9, 10, 14, 13],
+                    [10, 11, 15, 14],
+                    [11, 12, 16, 15]])     # connect = np.array([[1],[2],[3],[4]])
 
 # No. nodes with prescribed displacements, with the prescribed displacements
 
-nfix = 6
-fixnodes = np.array([[1, 1, 2, 3, 4, 7],
-                     [1, 2, 2, 2, 1, 1],
-                     [0, 0, 0, 0, 0, 0]])
+nfix = 8
+fixnodes = np.array([[1, 1, 2, 3, 4, 5, 9, 13],
+                     [1, 2, 2, 2, 2, 1, 1, 1],
+                     [0, 0, 0, 0, 0, 0, 0, 0]])
 
 # No. loaded element faces, with the loads
 
-ndload = 2
-dloads = np.array([[2, 3],
-                   [2, 2],
-                   [3, 3],
-                   [0, 0]])      # dloads = np.array([[1],[2],[3],[0]])
+ndload = 3
+dloads = np.array([[3, 4, 9],
+                   [2, 2, 2],
+                   [3, 3, 3],
+                   [0, 0, 0]])      # dloads = np.array([[1],[2],[3],[0]])
 
 
 # Name for the Giraffe input file (without identification number)

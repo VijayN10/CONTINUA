@@ -380,7 +380,7 @@ def Voigt2normal(Dnumerical):
 #    Computes material stiffness tensor C_{ijkl} 
 #    Currently coded either for plane strain or general 3D.
 #@jit(nopython=False, parallel=True)
-def materialstiffness(ndof, ncoord, B, J, materialprops):
+def materialStiffness(ndof, ncoord, B, J, materialprops):
     mu1 = materialprops[0]
     K1 = materialprops[1]
 
@@ -404,7 +404,7 @@ def materialstiffness(ndof, ncoord, B, J, materialprops):
 #
 #   Computes stress sigma_{ij} given B_{ij}
 #@jit(nopython=False, parallel=True)
-def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
+def kirchhoffStress(ndof,ncoord,B,J,materialprops):
   stress = np.zeros((ndof,ncoord))
   dl = [[1,0,0],[0,1,0],[0,0,1]]
 
@@ -426,7 +426,7 @@ def Kirchhoffstress(ndof,ncoord,B,J,materialprops):
 #   Defines the number of integration points:be used for
 #   each element type
 #@jit(nopython=False, parallel=True)
-def numberofintegrationpoints(ncoord, nelnodes, elident):
+def numberOfIntegrationPoints(ncoord, nelnodes, elident):
     if (ncoord == 1):
         n = nelnodes
     elif (ncoord == 2):
@@ -455,7 +455,7 @@ def numberofintegrationpoints(ncoord, nelnodes, elident):
 #
 #   Defines positions of integration points
 #@jit(nopython=False, parallel=True)
-def integrationpoints(ncoord, nelnodes, npoints, elident):
+def integrationPoints(ncoord, nelnodes, npoints, elident):
     # xi = np.zeros((npoints,ncoord))
     xi=np.zeros((ncoord,npoints))
 
@@ -539,7 +539,7 @@ def integrationpoints(ncoord, nelnodes, npoints, elident):
 #
 #   Defines integration weights w_i
 #@jit(nopython=False, parallel=True)
-def integrationweights(ncoord, nelnodes, npoints, elident):
+def integrationWeights(ncoord, nelnodes, npoints, elident):
 
     w = [0 for i in range(npoints)]
 
@@ -607,7 +607,7 @@ def integrationweights(ncoord, nelnodes, npoints, elident):
 #
 #        Calculates shape functions for various element types
 #@jit(nopython=False, parallel=True)
-def shapefunctions(nelnodes, ncoord, elident, xi):
+def shapeFunctions(nelnodes, ncoord, elident, xi):
     
     N = np.zeros((nelnodes,1))
     # 
@@ -666,7 +666,7 @@ def shapefunctions(nelnodes, ncoord, elident, xi):
 #================= SHAPE FUNCTION DERIVATIVES ======================
 #
 #@jit(nopython=False, parallel=True)
-def shapefunctionderivs(nelnodes,ncoord,elident,xi):
+def shapeFunctionDerivs(nelnodes,ncoord,elident,xi):
 
     dNdxi = np.zeros((nelnodes,ncoord))
 
@@ -753,7 +753,7 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
 #      stress[i,j]        stress_ij components
 #      r[row]             Residual vector
    
-    npoints = numberofintegrationpoints(ncoord, nelnodes, elident)
+    npoints = numberOfIntegrationPoints(ncoord, nelnodes, elident)
     dxdxi = np.zeros((ncoord, ncoord))
     dxidx = np.zeros((ncoord, ncoord))
     dNdxs = np.zeros((nelnodes, ncoord))
@@ -764,8 +764,8 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
 
 # Set up integration points and weights
     
-    xilist = integrationpoints(ncoord, nelnodes, npoints, elident)
-    w = integrationweights(ncoord, nelnodes, npoints, elident)
+    xilist = integrationPoints(ncoord, nelnodes, npoints, elident)
+    w = integrationWeights(ncoord, nelnodes, npoints, elident)
 
     # Loop over the integration points
     for intpt in range(npoints):
@@ -774,8 +774,8 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
 
         for i in range(ncoord):
             xi[i] = xilist[i][intpt]
-        N = shapefunctions(nelnodes, ncoord, elident, xi)
-        dNdxi = shapefunctionderivs(nelnodes, ncoord, elident, xi)
+        N = shapeFunctions(nelnodes, ncoord, elident, xi)
+        dNdxi = shapeFunctionDerivs(nelnodes, ncoord, elident, xi)
 
         # Compute the jacobian matrix and its determinant
 
@@ -821,7 +821,7 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
         
         # Compute the stress
 
-        stress = Kirchhoffstress(ndof,ncoord,B,J,materialprops)
+        stress = kirchhoffStress(ndof,ncoord,B,J,materialprops)
 
         # Compute the element residual
 
@@ -836,7 +836,7 @@ def elresid(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement)
 #================= ELEMENT STIFFNESS MATRIX ================================
 #
 #@jit(nopython=False, parallel=True)
-def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
+def elStif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
     
 #  Assemble the element stiffness
 #
@@ -864,7 +864,7 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
 #      dsde(i,j,k,l)      Derivative of stress_ij with respect:strain_kl
 #      kel(row,col)       Rows && cols of element stiffness
 
-    npoints = numberofintegrationpoints(ncoord, nelnodes, elident)
+    npoints = numberOfIntegrationPoints(ncoord, nelnodes, elident)
     dNdx = np.zeros((nelnodes, ncoord))
     dxdxi = np.zeros((ncoord, ncoord))
     strain = np.zeros((ndof, ncoord))
@@ -872,8 +872,8 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
 
     # Set up integration points && weights 
 
-    xilist = integrationpoints(ncoord,nelnodes,npoints,elident)
-    w = integrationweights(ncoord,nelnodes,npoints,elident)
+    xilist = integrationPoints(ncoord,nelnodes,npoints,elident)
+    w = integrationWeights(ncoord,nelnodes,npoints,elident)
 
     # Loop over the integration points
 
@@ -885,8 +885,8 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
         for i in range(0,ncoord):
           xi[i] = xilist[i,intpt] 
 
-        N = shapefunctions(nelnodes, ncoord, elident, xi)
-        dNdxi = shapefunctionderivs(nelnodes, ncoord, elident, xi)
+        N = shapeFunctions(nelnodes, ncoord, elident, xi)
+        dNdxi = shapeFunctionDerivs(nelnodes, ncoord, elident, xi)
 
         # Compute the jacobian matrix && its determinant
 
@@ -940,13 +940,13 @@ def elstif(ncoord, ndof, nelnodes, elident, coord, materialprops, displacement):
 
             # Compute the stress
 
-            stress = Kirchhoffstress(ndof, ncoord, B, J, materialprops)
+            stress = kirchhoffStress(ndof, ncoord, B, J, materialprops)
 
             # Compute the material tangent stiffness (d stress/d strain)
             # ds/de is just C_ijkl for linear elasticity - this notation is used
             # to allow extension to nonlinear problems
 
-            dsde = materialstiffness(ndof, ncoord, B, J, materialprops)
+            dsde = materialStiffness(ndof, ncoord, B, J, materialprops)
         
 
         elif model == 2:
@@ -1206,19 +1206,19 @@ def facenodes(ncoord,nelnodes,elident,face):
 #
 #@jit(nopython=False, parallel=True)
 def eldload(ncoord, ndof, nfacenodes, elident, coords, traction):
-    npoints = numberofintegrationpoints(ncoord-1, nfacenodes, elident)
+    npoints = numberOfIntegrationPoints(ncoord-1, nfacenodes, elident)
     xi =  np.zeros((ncoord-1,1))
     dxdxi = np.zeros((ncoord,ncoord-1))
     r = np.zeros((ndof*nfacenodes,1))
    
-    xilist = integrationpoints(ncoord-1, nfacenodes, npoints, elident)
-    w = integrationweights(ncoord-1, nfacenodes, npoints, elident)
+    xilist = integrationPoints(ncoord-1, nfacenodes, npoints, elident)
+    w = integrationWeights(ncoord-1, nfacenodes, npoints, elident)
 
     for intpt in range(npoints):
         for i in range(ncoord-1):
             xi[i] = xilist[i][intpt]
-        N = shapefunctions(nfacenodes, ncoord-1, elident, xi)
-        dNdxi = shapefunctionderivs(nfacenodes, ncoord-1, elident, xi)
+        N = shapeFunctions(nfacenodes, ncoord-1, elident, xi)
+        dNdxi = shapeFunctionDerivs(nfacenodes, ncoord-1, elident, xi)
 
         # Compute the jacobian matrix && its determinant
 
@@ -1244,7 +1244,7 @@ def eldload(ncoord, ndof, nfacenodes, elident, coords, traction):
 #====================== Assemble the global residual vector =================
 #
 #@jit(nopython=False, parallel=True)
-def globalresidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
+def globalResidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
     
     # Assemble the global stiffness matrix
 
@@ -1283,11 +1283,11 @@ def globalresidual(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnod
 #====================== Assemble the global stiffness matrix =================
 #
 #@jit(nopython=False, parallel=True)
-def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
+def globalStiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelnodes, connect, materialprops, dofs):
     
     # Assemble the global stiffness matrix
 
-    Stif = np.zeros((ndof*nnode,ndof*nnode))
+    stif = np.zeros((ndof*nnode,ndof*nnode))
     lmncoord = np.zeros((ncoord,maxnodes))
     lmndof = np.zeros((ndof,maxnodes))
     
@@ -1304,7 +1304,7 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
                 lmndof[i][a] = dofs[ndof*(connect[a][lmn]-1)+i]
         n = nelnodes
         ident = elident[lmn]
-        kel = elstif(ncoord, ndof, n, ident, lmncoord, materialprops, lmndof)
+        kel = elStif(ncoord, ndof, n, ident, lmncoord, materialprops, lmndof)
         
         # Add the current element stiffness:the global stiffness
 
@@ -1314,8 +1314,8 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
                     for k in range(ndof):
                         rw = ndof*(connect[a][lmn]-1)+i
                         cl = ndof*(connect[b][lmn]-1)+k
-                        Stif[rw][cl] += kel[ndof*(a-1)+i][ndof*(b-1)+k]
-    return Stif
+                        stif[rw][cl] += kel[ndof*(a-1)+i][ndof*(b-1)+k]
+    return stif
 
 ######################################################################################################################################################
 
@@ -1323,7 +1323,7 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
 #===================== Assemble the global traction vector =============
 #
 #@jit(nopython=False, parallel=True)
-def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, connect, dloads, dofs):
+def globalTraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, connect, dloads, dofs):
     r = np.zeros((ndof*nnodes, 1))
     traction = np.zeros((ndof, 1))
 
@@ -1361,7 +1361,7 @@ def globaltraction(ncoord, ndof, nnodes, ndload, coords, nelnodes, elident, conn
 ######################################################################################################################################################
 
 #@jit(nopython=False, parallel=True)
-def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads, dofs):
+def printResults(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, nelem, maxnodes, connect, nelnodes, elident, nfix, fixnodes, ndload, dloads, dofs):
 
     outfile.write("Nodal Displacements: \n")
     if ndof == 2:
@@ -1392,7 +1392,7 @@ def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, n
         n = nelnodes
         ident = elident
 
-        npoints = numberofintegrationpoints(ncoord,n, elident)
+        npoints = numberOfIntegrationPoints(ncoord,n, elident)
         dNdx = np.zeros((n,ncoord))
         dxdxi = np.zeros((ncoord,ncoord))
         xi = np.zeros((ncoord,1))
@@ -1400,15 +1400,15 @@ def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, n
         F = np.zeros((ncoord,ncoord))
 
         # Set up integration points
-        xilist = integrationpoints(ncoord,n,npoints, elident)
+        xilist = integrationPoints(ncoord,n,npoints, elident)
 
         for intpt in range(npoints):
 
             for i in range(ncoord):
                 xi[i] = xilist[i][intpt]
 
-            N = shapefunctions(nelnodes, ncoord, elident, xi)
-            dNdxi = shapefunctionderivs(nelnodes, ncoord, elident, xi)
+            N = shapeFunctions(nelnodes, ncoord, elident, xi)
+            dNdxi = shapeFunctionDerivs(nelnodes, ncoord, elident, xi)
 
             for i in range(ncoord):
                 x[i][0] = 0
@@ -1451,7 +1451,7 @@ def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, n
                     for j in range(ncoord):
                         dNdxs[a, i] += dNdx[a, j] * Finv[j, i]
 
-            stress = Kirchhoffstress(ndof,ncoord,B,J,materialprops)
+            stress = kirchhoffStress(ndof,ncoord,B,J,materialprops)
             stress = stress/J
 
             if ncoord == 2:
@@ -1460,7 +1460,7 @@ def print_results(outfile, nprops, materialprops, ncoord, ndof, nnode, coords, n
 
 
 # Plot Mesh
-def plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, color):
+def plotMesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, color):
     f2D_3 = np.array([1,2,3])
     f2D_4 = np.array([1,2,3,4])
     f2D_6 = np.array([1,4,2,5,3,6])
@@ -1488,7 +1488,7 @@ def plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, color):
 
 #######
 
-# # PlotMesh untility has not added
+# # plotMesh untility has not added
 # infile = "hyperelastic_quad4.txt"
 # infile = open('hyperelastic_quad4.txt', 'r')
 
@@ -1552,11 +1552,11 @@ for step in range(1, nsteps+1):
     while ((err1>tol) and (nit<maxit)): # Newton Raphson loop
         nit = nit + 1
    
-        K = globalstiffness(ncoord,ndof,nnode,coords, 
+        K = globalStiffness(ncoord,ndof,nnode,coords, 
                 nelem,maxnodes,elident,nelnodes,connect,materialprops,w)
-        T = globaltraction(ncoord,ndof,nnode,ndload,coords, 
+        T = globalTraction(ncoord,ndof,nnode,ndload,coords, 
                     nelnodes,elident,connect,dloads,w)
-        R = globalresidual(ncoord,ndof,nnode,coords, 
+        R = globalResidual(ncoord,ndof,nnode,coords, 
                 nelem,maxnodes,elident,nelnodes, 
                 connect,materialprops,w)
 
@@ -1587,7 +1587,7 @@ for step in range(1, nsteps+1):
     outfile.write(f'\n\n Step {step} Load {loadfactor}\n')
 
     # Commented to boost the speed
-    print_results(outfile, 
+    printResults(outfile, 
         nprops,materialprops,ncoord,ndof,nnode,coords, 
         nelem,maxnodes,connect,nelnodes,elident, 
         nfix,fixnodes,ndload,dloads,w)
@@ -1608,8 +1608,8 @@ for step in range(1, nsteps+1):
 
 
 
-plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, 'g')
-# plotmesh(defcoords, ncoord, nnode, connect, nelem, elident, nelnodes, 'r')
+plotMesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, 'g')
+# plotMesh(defcoords, ncoord, nnode, connect, nelem, elident, nelnodes, 'r')
 
 plt.plot(forcevdisp[0,:], forcevdisp[1,:], 'r', linewidth=3)
 plt.xlabel('Displacement', fontsize=16)
