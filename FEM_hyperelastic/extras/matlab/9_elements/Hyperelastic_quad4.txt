@@ -1,0 +1,50 @@
+No._material_props:    2
+    mu1:   1.
+    K1:    10.
+No._coords_per_node:   2
+No._DOF_per_node:      2
+No._nodes:             16
+Nodal_coords:
+    0.0   0.0
+    1.0   0.0
+    2.0   0.0
+    3.0   0.0
+    0.0   1.0
+    1.0   1.0
+    2.0   1.0
+    3.0   1.0
+    0.0   2.0
+    1.0   2.0
+    2.0   2.0
+    3.0   2.0
+    0.0   3.0
+    1.0   3.0
+    2.0   3.0
+    3.0   3.0
+No._elements:                       9
+Max_no._nodes_on_any_one_element:   4
+element_identifier; no._nodes_on_element; connectivity:
+    1  4  1 2 6 5 
+    2  4  2 3 7 6 
+    3  4  3 4 8 7
+    4  4  7 8 12 11
+    5  4  6 7 11 10
+    6  4  5 6 10 9 
+    7  4  9 10 14 13
+    8  4  10 11 15 14 
+    9  4  11 12 16 15
+No._nodes_with_prescribed_DOFs:  8
+Node_#, DOF#, Value:
+   1 1 0.0
+   1 2 0.0
+   2 2 0.0
+   3 2 0.0
+   4 2 0.0
+   5 1 0.0
+   9 1 0.0
+   13 1 0.0
+No._elements_with_prescribed_loads: 3
+Element_#, Face_#, Traction_components
+  3 2 3.0 0.0
+  4 2 3.0 0.0
+  9 2 3.0 0.0
