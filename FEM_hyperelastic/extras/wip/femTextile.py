@@ -60,186 +60,210 @@ if model == 1 :
     k1 = materialprops[1][0]
 elif model == 2:
     rvetype = materialprops[1][0]
-    
-    
+
 # no. coords (1:3), no. DOF, no. nodes and nodal coordinates
 
 ncoord = 2
 ndof = 2
 
 
-def meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes):
+# def meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes):
 
-    """
-    Generate a structured mesh of quadrilateral elements.
+#     """
+#     Generate a structured mesh of quadrilateral elements.
 
-    Args:
-        nelemx: number of elements along the x-axis
-        nelemy: number of elements along the y-axis
-        width: total width of the mesh
-        height: total height of the mesh
-        maxnodes: maximum number of nodes per element
-        nelnodes: number of nodes per element
+#     Args:
+#         nelemx: number of elements along the x-axis
+#         nelemy: number of elements along the y-axis
+#         width: total width of the mesh
+#         height: total height of the mesh
+#         maxnodes: maximum number of nodes per element
+#         nelnodes: number of nodes per element
 
-    Returns:
-        coords: node coordinates (2D array, shape (2, nnodes))
-        connect: element connectivity (2D array, shape (nelem, maxnodes))
-        elident: element identifiers (1D array, shape (nelem,))
-        nnode: number of nodes
-        nelem: number of elements
-        maxnodes: maximum number of nodes per element
-        nelnodes: number of nodes per element
-    """
+#     Returns:
+#         coords: node coordinates (2D array, shape (2, nnodes))
+#         connect: element connectivity (2D array, shape (nelem, maxnodes))
+#         elident: element identifiers (1D array, shape (nelem,))
+#         nnode: number of nodes
+#         nelem: number of elements
+#         maxnodes: maximum number of nodes per element
+#         nelnodes: number of nodes per element
+#     """
 
-    # Compute node coordinates
-    dx = width / nelemx
-    dy = height / nelemy
-    x = np.linspace(0, width, nelemx+1)   # x-coordinates of nodes
-    y = np.linspace(0, height, nelemy+1)  # y-coordinates of nodes
-    X, Y = np.meshgrid(x, y) 
-    coords = np.vstack([X.ravel(), Y.ravel()])
+#     # Compute node coordinates
+#     dx = width / nelemx
+#     dy = height / nelemy
+#     x = np.linspace(0, width, nelemx+1)   # x-coordinates of nodes
+#     y = np.linspace(0, height, nelemy+1)  # y-coordinates of nodes
+#     X, Y = np.meshgrid(x, y) 
+#     coords = np.vstack([X.ravel(), Y.ravel()])
 
-    # Compute element connectivity
+#     # Compute element connectivity
     
-    nnode = (nelemx+1) * (nelemy+1)
-    nelem = nelemx * nelemy
+#     nnode = (nelemx+1) * (nelemy+1)
+#     nelem = nelemx * nelemy
     
-    # Check if only one element is present
-    if nelem == 1:
-        proceed = input("Meshing not done: only one element present. Do you want to proceed? (y/n)")
-        if proceed != "y":
-            sys.exit()
+#     # Check if only one element is present
+#     if nelem == 1:
+#         proceed = input("Meshing not done: only one element present. Do you want to proceed? (y/n)")
+#         if proceed != "y":
+#             sys.exit()
             
-    elident = np.arange(1, nelem+1).reshape(-1, 1)
-    connect = np.zeros((nelem, maxnodes), dtype=int)
-    for j in range(nelemy):
-        for i in range(nelemx):
-            n1 = j*(nelemx+1) + i  # node index of lower left corner of element
-            n2 = n1 + 1    # node index of lower right corner of element
-            n3 = n2 + nelemx+1  # node index of upper right corner of element
-            n4 = n1 + nelemx+1  # node index of upper left corner of element
-            if j % 2 == 0:
-                e = j*nelemx + i  # for even-numbered rows, elements are numbered left to right
-                connect[e] = [n1+1, n2+1, n3+1, n4+1]
-            else:
-                e = (j+1)*nelemx - i - 1   # for odd-numbered rows, elements are numbered right to left
-                connect[e] = [n1+1, n2+1, n3+1, n4+1]
+#     elident = np.arange(1, nelem+1).reshape(-1, 1)
+#     connect = np.zeros((nelem, maxnodes), dtype=int)
+#     for j in range(nelemy):
+#         for i in range(nelemx):
+#             n1 = j*(nelemx+1) + i  # node index of lower left corner of element
+#             n2 = n1 + 1    # node index of lower right corner of element
+#             n3 = n2 + nelemx+1  # node index of upper right corner of element
+#             n4 = n1 + nelemx+1  # node index of upper left corner of element
+#             if j % 2 == 0:
+#                 e = j*nelemx + i  # for even-numbered rows, elements are numbered left to right
+#                 connect[e] = [n1+1, n2+1, n3+1, n4+1]
+#             else:
+#                 e = (j+1)*nelemx - i - 1   # for odd-numbered rows, elements are numbered right to left
+#                 connect[e] = [n1+1, n2+1, n3+1, n4+1]
     
-    connect = connect.T
+#     connect = connect.T
 
-    # Return mesh information
-    return coords, connect, elident, nnode, nelem, maxnodes, nelnodes
-
-
-nelemx = 1
-nelemy = 1
-width = 1
-height = 1
-maxnodes = 4
-nelnodes = 4
-coords, connect, elident, nnode, nelem, maxnodes, nelnodes = meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes)
+#     # Return mesh information
+#     return coords, connect, elident, nnode, nelem, maxnodes, nelnodes
 
 
+# nelemx = 2
+# nelemy = 2
+# width = 2
+# height = 2
+# maxnodes = 4
+# nelnodes = 4
+# coords, connect, elident, nnode, nelem, maxnodes, nelnodes = meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes)
 
-left_nodes = []  # List to store the node numbers on the extreme left side of the mesh
-for i in range(nelemy + 1):
-    left_nodes.append(i * (nelemx + 1) + 1)
-# print(left_nodes)
+# # # Print mesh information
+# # print(f"Mesh generated with {nelemx*nelemy} elements and {(nelemx+1)*(nelemy+1)} nodes.")
+# # print(f"Element connectivity:\n{connect}")
+# # print(f"Node coordinates:\n{coords}")
+# # print(f"elident:\n{elident}")
+# # print(f"nnode:\n{nnode}")
+# # print(f"nelem:\n{nelem}")
+# # print(f"maxnodes:\n{maxnodes}")
+# # print(f"nelnodes:\n{nelnodes}")
 
-bottom_nodes = []  # List to store the node numbers on the extreme bottom of the mesh
-for i in range(nelemx + 1):
-    bottom_nodes.append(i + 1)
-# print(bottom_nodes)
+# left_nodes = []  # List to store the node numbers on the extreme left side of the mesh
+# for i in range(nelemy + 1):
+#     left_nodes.append(i * (nelemx + 1) + 1)
+# # print(left_nodes)
 
-
-nfix = len(bottom_nodes) + len(left_nodes)
-fixnodes = np.zeros((3, nfix), dtype=int)
-
-# Adding bottom nodes to the first row
-fixnodes[0, :len(bottom_nodes)] = bottom_nodes
-
-# Adding left nodes to the first row
-fixnodes[0, len(bottom_nodes):] = left_nodes
-
-# Sorting the first row in ascending order
-fixnodes[0, :] = np.sort(fixnodes[0, :])
-
-
-# Determine the values in the second row based on the position of the nodes
-for i in range(nfix):
-    node = fixnodes[0, i]
-    if node in bottom_nodes and node in left_nodes:
-        # Node is at the corner of the grid
-        fixnodes[1, i] = 0
-    elif node in bottom_nodes:
-        # Node is on the bottom row
-        fixnodes[1, i] = 2
-    elif node in left_nodes:
-        # Node is on the left column
-        fixnodes[1, i] = 1
-
-# Set the first two elements of the second row to 1 and 2 respectively
-fixnodes[1, 0] = 1
-fixnodes[1, 1] = 2
-
-# Third row will be all zeros
-fixnodes[2, :] = 0
-
-# print(fixnodes)
+# bottom_nodes = []  # List to store the node numbers on the extreme bottom of the mesh
+# for i in range(nelemx + 1):
+#     bottom_nodes.append(i + 1)
+# # print(bottom_nodes)
 
 
-# Find the elements on the rightmost side
-right_elems = []
-for j in range(nelemy):
-    if j % 2 == 0:
-        e = (j + 1) * nelemx - 1
-        right_elems.append(e + 1)
-    else:
-        e = j * nelemx
-        right_elems.append(e + 1)
+# nfix = len(bottom_nodes) + len(left_nodes)
+# fixnodes = np.zeros((3, nfix), dtype=int)
 
-# print(right_elems)
+# # Adding bottom nodes to the first row
+# fixnodes[0, :len(bottom_nodes)] = bottom_nodes
 
+# # Adding left nodes to the first row
+# fixnodes[0, len(bottom_nodes):] = left_nodes
 
-# print(right_elems)
-ndload = len(right_elems)
-# print(ndload)
-dloads = np.zeros((4, ndload))
-dloads[0] = right_elems
-dloads[1] = 2
-dloads[2] = 3
-dloads[3] = 0
-
-# print(dloads)
+# # Sorting the first row in ascending order
+# fixnodes[0, :] = np.sort(fixnodes[0, :])
 
 
-# Plot nodes with labels
-plt.scatter(coords[0], coords[1], s=10, color='black')
-for i in range(nnode):
-    plt.text(coords[0,i]+0.05, coords[1,i]+0.05, i+1, color='red', fontsize=12)
+# # Determine the values in the second row based on the position of the nodes
+# for i in range(nfix):
+#     node = fixnodes[0, i]
+#     if node in bottom_nodes and node in left_nodes:
+#         # Node is at the corner of the grid
+#         fixnodes[1, i] = 0
+#     elif node in bottom_nodes:
+#         # Node is on the bottom row
+#         fixnodes[1, i] = 2
+#     elif node in left_nodes:
+#         # Node is on the left column
+#         fixnodes[1, i] = 1
+
+# # Set the first two elements of the second row to 1 and 2 respectively
+# fixnodes[1, 0] = 1
+# fixnodes[1, 1] = 2
+
+# # Third row will be all zeros
+# fixnodes[2, :] = 0
+
+# # print(fixnodes)
+
+
+# # Find the elements on the rightmost side
+# right_elems = []
+# for j in range(nelemy):
+#     if j % 2 == 0:
+#         e = (j + 1) * nelemx - 1
+#         right_elems.append(e + 1)
+#     else:
+#         e = j * nelemx
+#         right_elems.append(e + 1)
+
+# # print(right_elems)
+
+
+# # print(right_elems)
+# ndload = len(right_elems)
+# # print(ndload)
+# dloads = np.zeros((4, ndload))
+# dloads[0] = right_elems
+# dloads[1] = 2
+# dloads[2] = 3
+# dloads[3] = 0
+
+# # print(dloads)
+
+
+# # Plot nodes with labels
+# plt.scatter(coords[0], coords[1], s=10, color='black')
+# for i in range(nnode):
+#     plt.text(coords[0,i]+0.05, coords[1,i]+0.05, i+1, color='red', fontsize=12)
 
     
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title('Structured Mesh')
-plt.axis('equal')
-plt.show()
+# plt.xlabel('x')
+# plt.ylabel('y')
+# plt.title('Structured Mesh')
+# plt.axis('equal')
+# plt.show()
 
 
+nnode = 9
 
+coords = np.array([[0, 1, 2, 0, 1, 2, 0, 1, 2],
+                   [0, 0, 0, 1, 1, 1, 2, 2, 2]])
 
-# nfix = 8
-# fixnodes = np.array([[1, 1, 2, 3, 4, 5, 9, 13],
-#                      [1, 2, 2, 2, 2, 1, 1, 1],
-#                      [0, 0, 0, 0, 0, 0, 0, 0]])
+# No. elements and connectivity
 
-# # No. loaded element faces, with the loads
+nelem = 4
+maxnodes = 4 
+nelnodes = 4   
+elident = np.array([[1],[2],[3],[4]])                 # elident = np.array([[1]])
 
-# ndload = 3
-# dloads = np.array([[3, 4, 9],
-#                    [2, 2, 2],
-#                    [3, 3, 3],
-#                    [0, 0, 0]])      # dloads = np.array([[1],[2],[3],[0]])
+connect = np.array([[1, 2, 5, 4],
+                    [2, 3, 6, 5],
+                    [5, 6, 9, 8],
+                    [4, 5, 8, 7]])     # connect = np.array([[1],[2],[3],[4]])
+
+# No. nodes with prescribed displacements, with the prescribed displacements
+
+nfix = 6
+fixnodes = np.array([[1, 1, 2, 3, 4, 7],
+                     [1, 2, 2, 2, 1, 1],
+                     [0, 0, 0, 0, 0, 0]])
+
+# No. loaded element faces, with the loads
+
+ndload = 2
+dloads = np.array([[2, 3],
+                   [2, 2],
+                   [3, 3],
+                   [0, 0]])      # dloads = np.array([[1],[2],[3],[0]])
 
 
 # Name for the Giraffe input file (without identification number)
@@ -582,6 +606,15 @@ def numberofintegrationpoints(ncoord, nelnodes, elident):
             n = 4
         elif (nelnodes == 8):
             n = 9
+    elif (ncoord == 3):
+        if (nelnodes == 4):
+            n = 1
+        elif (nelnodes == 10):
+            n = 4
+        elif (nelnodes == 8):
+            n = 8
+        elif (nelnodes == 20):
+            n = 27
     return n
 
 ######################################################################################################################################################
@@ -713,6 +746,26 @@ def integrationweights(ncoord, nelnodes, npoints, elident):
                     for i in range(3):
                         n = 3*(j-1) + i
                         w[n] = w1D[i] * w1D[j]
+    
+    # 3D elements
+    elif ncoord == 3:
+        if (nelnodes == 4 or nelnodes == 10):
+            if npoints == 1:
+                w[0] = 1/6
+            elif npoints == 4:
+                w = [1/24, 1/24, 1/24, 1/24]
+        elif (nelnodes == 8 or nelnodes == 20):
+            if npoints == 1:
+                w[0] = 8
+            elif npoints == 8:
+                w = [1, 1, 1, 1, 1, 1, 1, 1]
+            elif npoints == 27:
+                w1D = [0.555555555, 0.888888888, 0.55555555555]
+                for k in range(3):
+                    for j in range(3):
+                        for i in range(3):
+                            n = 9*(k-1) + 3*(j-1) + i
+                            w[n] = w1D[i] * w1D[j] * w1D[k]
 
     return w
 
@@ -1307,7 +1360,7 @@ def facenodes(ncoord,nelnodes,elident,face):
             fnlist[2] = face+3
         elif (nelnodes==4): 
             fnlist[0] = face
-            fnlist[1] = i4[int(face)-1]
+            fnlist[1] = i4[face-1]
         elif (nelnodes==8): 
             fnlist[0] = face
             fnlist[1] = i4[face-1]
@@ -1407,9 +1460,11 @@ def globalstiffness(ncoord, ndof, nnode, coords, nelem, maxnodes, elident, nelno
     lmndof = np.zeros((ndof,maxnodes))
     
     # Loop over all the elements
+
     for lmn in range(nelem):
         
         # Extract coords of nodes, DOF for the current element
+
         for a in range(nelnodes):
             for i in range(ncoord):
                 lmncoord[i][a] = coords[i][connect[a][lmn]-1]

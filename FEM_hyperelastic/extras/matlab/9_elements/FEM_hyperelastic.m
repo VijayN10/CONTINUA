@@ -1319,9 +1319,9 @@ function Stif = globalstiffness(ncoord,ndof,nnode,coords,nelem,maxnodes,elident,
    lmndof = zeros(ndof,maxnodes);
 %
 %   Loop over all the elements
-%
+%  
    for lmn = 1:nelem
-%
+%  
 %   Extract coords of nodes, DOF for the current element
 %
       for a = 1:nelnodes(lmn)

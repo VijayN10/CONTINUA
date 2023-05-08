@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 
 
 def meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes):
@@ -34,8 +35,16 @@ def meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes):
     coords = np.vstack([X.ravel(), Y.ravel()])
 
     # Compute element connectivity
+    
     nnode = (nelemx+1) * (nelemy+1)
     nelem = nelemx * nelemy
+    
+    # Check if only one element is present
+    if nelem == 1:
+        proceed = input("Meshing not done: only one element present. Do you want to proceed? (y/n)")
+        if proceed != "y":
+            sys.exit()
+            
     elident = np.arange(1, nelem+1).reshape(-1, 1)
     connect = np.zeros((nelem, maxnodes), dtype=int)
     for j in range(nelemy):
@@ -51,21 +60,16 @@ def meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes):
                 e = (j+1)*nelemx - i - 1   # for odd-numbered rows, elements are numbered right to left
                 connect[e] = [n1+1, n2+1, n3+1, n4+1]
     
-
-    # Check if only one element is present
-    if nelem == 1:
-        proceed = input("Meshing not done: only one element present. Do you want to proceed? (y/n)")
-        if proceed != "y":
-            sys.exit()
-
+    connect = connect.T
+    
     # Return mesh information
     return coords, connect, elident, nnode, nelem, maxnodes, nelnodes
 
 
-nelemx = 3
-nelemy = 3
-width = 3
-height = 3
+nelemx = 2
+nelemy = 2
+width = 1
+height = 1
 maxnodes = 4
 nelnodes = 4
 coords, connect, elident, nnode, nelem, maxnodes, nelnodes = meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes)
@@ -79,3 +83,20 @@ print(f"nnode:\n{nnode}")
 print(f"nelem:\n{nelem}")
 print(f"maxnodes:\n{maxnodes}")
 print(f"nelnodes:\n{nelnodes}")
+
+
+
+# Plot nodes with labels
+plt.scatter(coords[0], coords[1], s=10, color='black')
+for i in range(nnode):
+    plt.text(coords[0,i]+0.005, coords[1,i]+0.005, i+1, color='red', fontsize=12)
+
+# Plot element edges
+for i in range(nelem):
+    plt.plot(coords[0,connect[i,[0,1,2,3,0]]-1], coords[1,connect[i,[0,1,2,3,0]]-1], 'b')
+    
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Structured Mesh')
+plt.axis('equal')
+plt.show()

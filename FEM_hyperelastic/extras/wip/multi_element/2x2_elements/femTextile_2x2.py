@@ -65,42 +65,93 @@ elif model == 2:
 
 ncoord = 2
 ndof = 2
-nnode = 16
 
-coords = np.array([[0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3],
-                   [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]])
 
-# No. elements and connectivity
+def meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes):
 
-nelem = 9
-maxnodes = 4 
-nelnodes = 4   
-elident = np.array([[1],[2],[3],[4],[5],[6],[7],[8],[9]])                 # elident = np.array([[1]])
+    """
+    Generate a structured mesh of quadrilateral elements.
 
-connect = np.array([[1, 2, 6, 5],
-                    [2, 3, 7, 6],
-                    [3, 4, 8 ,7],
-                    [7, 8, 12, 11],
-                    [6, 7, 11, 10],
-                    [5, 6, 10, 9],
-                    [9, 10, 14, 13],
-                    [10, 11, 15, 14],
-                    [11, 12, 16, 15]])     # connect = np.array([[1],[2],[3],[4]])
+    Args:
+        nelemx: number of elements along the x-axis
+        nelemy: number of elements along the y-axis
+        width: total width of the mesh
+        height: total height of the mesh
+        maxnodes: maximum number of nodes per element
+        nelnodes: number of nodes per element
 
-# No. nodes with prescribed displacements, with the prescribed displacements
+    Returns:
+        coords: node coordinates (2D array, shape (2, nnodes))
+        connect: element connectivity (2D array, shape (nelem, maxnodes))
+        elident: element identifiers (1D array, shape (nelem,))
+        nnode: number of nodes
+        nelem: number of elements
+        maxnodes: maximum number of nodes per element
+        nelnodes: number of nodes per element
+    """
 
-nfix = 8
-fixnodes = np.array([[1, 1, 2, 3, 4, 5, 9, 13],
-                     [1, 2, 2, 2, 2, 1, 1, 1],
-                     [0, 0, 0, 0, 0, 0, 0, 0]])
+    # Compute node coordinates
+    dx = width / nelemx
+    dy = height / nelemy
+    x = np.linspace(0, width, nelemx+1)   # x-coordinates of nodes
+    y = np.linspace(0, height, nelemy+1)  # y-coordinates of nodes
+    X, Y = np.meshgrid(x, y) 
+    coords = np.vstack([X.ravel(), Y.ravel()])
+
+    # Compute element connectivity
+    
+    nnode = (nelemx+1) * (nelemy+1)
+    nelem = nelemx * nelemy
+    
+    # Check if only one element is present
+    if nelem == 1:
+        proceed = input("Meshing not done: only one element present. Do you want to proceed? (y/n)")
+        if proceed != "y":
+            sys.exit()
+            
+    elident = np.arange(1, nelem+1).reshape(-1, 1)
+    connect = np.zeros((nelem, maxnodes), dtype=int)
+    for j in range(nelemy):
+        for i in range(nelemx):
+            n1 = j*(nelemx+1) + i  # node index of lower left corner of element
+            n2 = n1 + 1    # node index of lower right corner of element
+            n3 = n2 + nelemx+1  # node index of upper right corner of element
+            n4 = n1 + nelemx+1  # node index of upper left corner of element
+            if j % 2 == 0:
+                e = j*nelemx + i  # for even-numbered rows, elements are numbered left to right
+                connect[e] = [n1+1, n2+1, n3+1, n4+1]
+            else:
+                e = (j+1)*nelemx - i - 1   # for odd-numbered rows, elements are numbered right to left
+                connect[e] = [n1+1, n2+1, n3+1, n4+1]
+    
+    connect = connect.T
+
+    # Return mesh information
+    return coords, connect, elident, nnode, nelem, maxnodes, nelnodes
+
+
+nelemx = 2
+nelemy = 2
+width = 1
+height = 1
+maxnodes = 4
+nelnodes = 4
+coords, connect, elident, nnode, nelem, maxnodes, nelnodes = meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes)
+
+
+
+nfix = 6
+fixnodes = np.array([[1, 1, 2, 3, 4, 7],
+                     [1, 2, 2, 2, 1, 1],
+                     [0, 0, 0, 0, 0, 0]])
 
 # No. loaded element faces, with the loads
 
-ndload = 3
-dloads = np.array([[3, 4, 9],
-                   [2, 2, 2],
-                   [3, 3, 3],
-                   [0, 0, 0]])      # dloads = np.array([[1],[2],[3],[0]])
+ndload = 2
+dloads = np.array([[2, 3],
+                   [2, 2],
+                   [3, 3],
+                   [0, 0]])      # dloads = np.array([[1],[2],[3],[0]])
 
 
 # Name for the Giraffe input file (without identification number)
@@ -1614,7 +1665,7 @@ for step in range(1, nsteps+1):
 
 
 plotmesh(coords, ncoord, nnode, connect, nelem, elident, nelnodes, 'g')
-# plotmesh(defcoords, ncoord, nnode, connect, nelem, elident, nelnodes, 'r')
+plotmesh(defcoords, ncoord, nnode, connect, nelem, elident, nelnodes, 'r')
 
 plt.plot(forcevdisp[0,:], forcevdisp[1,:], 'r', linewidth=3)
 plt.xlabel('Displacement', fontsize=16)
