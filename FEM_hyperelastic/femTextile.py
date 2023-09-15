@@ -131,8 +131,8 @@ def meshGen(nelemx, nelemy, width, height, maxnodes, nelnodes):
     return coords, connect, elident, nnode, nelem, maxnodes, nelnodes
 
 
-nelemx = 1
-nelemy = 1
+nelemx = 2
+nelemy = 2
 width = 1
 height = 1
 maxnodes = 4
